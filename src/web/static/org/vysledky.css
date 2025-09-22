@@ -1,6 +1,5 @@
 * {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    font-size: 1.55rem;
+    font-size: 1.4rem;
 }
 
 body {
@@ -22,7 +21,7 @@ body {
 .temp_res {
     font-style: italic;
     font-weight: 550;
-    color: rgb(169, 169, 169);
+    color: #a9a9a9;
 }
 
 td {
@@ -35,7 +34,7 @@ td {
 }
 
 #progress-bar {
-    background-color: rgb(36, 143, 179);
+    background-color: #248fb3;
     height: 20px;
     width: 0px;
 }

@@ -42,14 +42,14 @@ async function mainProc() {
 
             if (results.length === 0) {
                 ann_elem.style.display = "flex";
-                ann_elem.children[0].textContent = "NIKDO 🙈";
+                ann_elem.children[0].textContent = "🛌🏿";
             } else {
                 for (const result of results) {
                     let place = result.place > 0 ? result.place > 4 ? `${result.place}.` : ["🥇", "🥈", "🥉", "🥔"][result.place - 1] : result.time === "UNS" ? "🛌🏿" : result.status === "?" ? "🏃🏾‍➡️" : result.status;
                     const in_forest = result.status === "?";
                     const show_info = ["OK", "OVT", "MP"].includes(result.status);
                     const ok = result.status === "OK";
-                    const order = result.order.map((x) => `<b>${x[0]}</b> - ${x[1]}`).join(", ");
+                    const order = result.order.map((x) => `<b>${x[0]}</b>-${x[1]}`).join(", ");
                     results_elem.innerHTML += `<tr><td class="place"><b>${place}</b></td><td><b>${result.name}${result.index === "ELB0904" ? " 👨🏿‍💻" : result.index === "AFK1003" ? " 🎨" : ""}</b></td><td>${result.index}</td><td class="time"><b>${!ok && show_info ? `<span class="invalid">` : ""}${in_forest ? `<span class="temp_res">` : ""}${!(show_info || in_forest) ? "" : result.time === "UNS" ? `S: ${result.start}` : result.time}${in_forest ? "</span>" : ""}${!ok && show_info ? `</span>` : ""}</b></td><td class="tx"><b>${!ok && show_info ? `<span class="invalid">` : ""}${show_info ? `${result.tx} TX` : "-"}${!ok && show_info ? `</span>` : ""}</b></td><td>${!ok && show_info ? `<span class="invalid">` : ""}${show_info ? order : ""}${!ok && show_info ? `</span>` : ""}</td></tr>`
                 }
             }
@@ -59,7 +59,6 @@ async function mainProc() {
             await sleep(time);
         }
         let announcement = await get(`/api/announcement`);
-        console.log(announcement);
         if (announcement.ann !== "") {
             results_elem.innerHTML = "";
             ann_elem.children[0].innerHTML = announcement.ann;

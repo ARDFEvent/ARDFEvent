@@ -13,5 +13,6 @@
         <file>icons/tx.png</file>
         <file>icons/icon.png</file>
         <file>sound/error.wav</file>
+        <file>font/SpaceMono.ttf</file>
     </qresource>
 </RCC>

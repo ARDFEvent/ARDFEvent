@@ -28,16 +28,17 @@ from web.webserver import ARDFEventServer
 
 
 class WebServerThread(QThread):
-    def __init__(self, db):
+    def __init__(self, db, host):
         super().__init__()
         self.db = db
+        self.host = host
         self.server = ARDFEventServer(db)
 
     def set_ann(self, ann):
         self.server.announcement = ann
 
     def run(self):
-        self.server.run_server()
+        self.server.run_server(self.host)
 
     def terminate(self):
         return super().terminate()
@@ -94,9 +95,10 @@ class ResultsWindow(QWidget):
             self.proc.set_ann(ann)
 
     def _toggle_webserver(self):
-        if not self.proc:
+        host, ok = QInputDialog.getText(self, "Konfigurace webového serveru", "Zadejte IP adresu, na které má běžet WS")
+        if ok and not self.proc:
             self.webserverbtn.setDisabled(True)
-            self.proc = WebServerThread(self.mw.db)
+            self.proc = WebServerThread(self.mw.db, host)
             self.proc.started.connect(self._proc_running)
             self.proc.finished.connect(self._proc_stopped)
             self.proc.start()

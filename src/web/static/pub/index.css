@@ -1,0 +1,55 @@
+#logo {
+    width: 100%;
+    max-width: 400px;
+}
+
+h1, h2 {
+    text-align: center;
+}
+
+h1 {
+    font-size: 1.5rem;
+}
+
+h2 {
+    font-size: 1rem;
+}
+
+#categories {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-around;
+}
+
+#categories > a {
+    padding: 10px;
+    margin: 5px;
+    border-radius: 7px;
+    font-weight: bold;
+    text-align: center;
+    color: white;
+    text-decoration: none;
+}
+
+.men {
+    background-color: #026dec;
+}
+
+.women {
+    background-color: #d6487a;
+}
+
+.other {
+    background-color: #4caf50;
+}
+
+#alert {
+    color: #58151c;
+    font-weight: bold;
+    background-color: #f8d7da;
+    border: solid 1px #f1aeb5;
+    padding: 10px;
+    border-radius: 10px;
+    text-align: center;
+}

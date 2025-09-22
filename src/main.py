@@ -1,5 +1,5 @@
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QPixmap
+from PySide6.QtGui import QPixmap, QFontDatabase
 from PySide6.QtWidgets import QApplication, QSplashScreen
 
 # noinspection PyUnresolvedReferences
@@ -46,6 +46,9 @@ if __name__ == "__main__":
 
     # noinspection PyUnresolvedReferences
     from ui import resources
+
+    QFontDatabase.addApplicationFont(":/font/SpaceMono.ttf")
+    app.setFont("Space Mono")
 
     splash.showMessage("Inicializuji UI...")
     app.processEvents()

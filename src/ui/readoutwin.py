@@ -238,7 +238,7 @@ class ReadoutWindow(QWidget):
         )
 
         for punch in data["punches"]:
-            sess.add(Punch(si=si_no, code=punch[0], time=punch[1]))
+            sess.add(Punch(si=si_no, code=punch[0], time=punch[1].replace(microsecond=0)))
 
         if data["start"]:
             sess.add(Punch(si=si_no, code=1000, time=data["start"]))
