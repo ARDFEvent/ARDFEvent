@@ -55,12 +55,26 @@ class RunnersInForestWindow(QWidget):
             .where(~Runner.manual_disk)
             .where(Runner.si.not_in(Select(Punch.si)))
             .where(Runner.startlist_time < now)
-            .order_by(Runner.reg)
+            .order_by(Runner.startlist_time)
             .order_by(Runner.name)
         ).all()
 
+        finished = sess.scalars(
+            Select(Runner)
+            .where(~Runner.manual_dns)
+            .where(~Runner.manual_disk)
+            .where(Runner.si.in_(Select(Punch.si)))
+        ).all()
+
+        not_started_yet = sess.scalars(
+            Select(Runner)
+            .where(~Runner.manual_dns)
+            .where(~Runner.manual_disk)
+            .where(Runner.startlist_time > now)
+        ).all()
+
         self.gen_label.setText(
-            f"Generováno v {now.strftime("%H:%M:%S")}, {len(in_forest)} osob v lese"
+            f"Generováno v {now.strftime("%H:%M:%S")}, {len(in_forest)} osob v lese, {len(finished)} dokončilo, {len(not_started_yet)} ještě nestartovalo"
         )
 
         self.runners_table.clear()
@@ -82,7 +96,10 @@ class RunnersInForestWindow(QWidget):
             else:
                 self.runners_table.setItem(i, 3, QTableWidgetItem("-"))
 
-        self.runners_table.horizontalHeader().hide()
+        self.runners_table.setSortingEnabled(True)
         self.runners_table.verticalHeader().hide()
+        self.runners_table.setHorizontalHeaderLabels(
+            ["Jméno", "Index", "Kategorie", "Čas v lese"]
+        )
 
         sess.close()

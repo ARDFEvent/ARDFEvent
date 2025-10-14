@@ -140,9 +140,9 @@ class StagesHelperWindow(QWidget):
                 last_res = None
                 last_place = 0
                 for i, res in enumerate(cats_results[cat_res]):
-                    if res[:2] != last_res:
+                    if (res[1] if self.basic_radio.isChecked() else res[2][:2]) != last_res:
                         last_place = i + 1
-                        last_res = res[:2]
+                        last_res = res[1] if self.basic_radio.isChecked() else res[2][:2]
                     individual_res = []
                     for result in res[3]:
                         individual_res.append(

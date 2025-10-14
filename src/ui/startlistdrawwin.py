@@ -1,8 +1,6 @@
 import random
-import time
 from datetime import timedelta
 
-from dateutil.parser import parser
 from PySide6.QtWidgets import (
     QDateTimeEdit,
     QDoubleSpinBox,
@@ -10,6 +8,7 @@ from PySide6.QtWidgets import (
     QPushButton,
     QWidget,
 )
+from dateutil.parser import parser
 from sqlalchemy import Select
 from sqlalchemy.orm import Session
 
@@ -45,62 +44,58 @@ class StartlistDrawWindow(QWidget):
         for edit in self.edits.values():
             self.mainlay.removeRow(edit)
 
-        sess = Session(self.mw.db)
+        with Session(self.mw.db) as sess:
+            zero = parser().parse(api.get_basic_info(self.mw.db)["date_tzero"])
 
-        zero = parser().parse(api.get_basic_info(self.mw.db)["date_tzero"])
+            categories = sess.scalars(Select(Category)).all()
 
-        categories = sess.scalars(Select(Category)).all()
+            for cat in categories:
+                if not len(
+                        sess.scalars(Select(Runner).where(Runner.category == cat)).all()
+                ):
+                    continue
 
-        for cat in categories:
-            if not len(
-                sess.scalars(Select(Runner).where(Runner.category == cat)).all()
-            ):
-                continue
+                cat_edit = QDateTimeEdit()
+                cat_edit.setDateTime(zero)
 
-            cat_edit = QDateTimeEdit()
-            cat_edit.setDateTime(zero)
-
-            self.mainlay.addRow(cat.name, cat_edit)
-            self.edits[cat.name] = cat_edit
-
-        sess.close()
+                self.mainlay.addRow(cat.name, cat_edit)
+                self.edits[cat.name] = cat_edit
 
     def _draw(self):
         baseint_delta = timedelta(seconds=self.base_interval_edit.value() * 60)
-        sess = Session(self.mw.db)
-        for cat_name in self.edits.keys():
-            cat = sess.scalars(
-                Select(Category).where(Category.name == cat_name)
-            ).first()
-            runners = list(
-                sess.scalars(Select(Runner).where(Runner.category == cat)).all()
-            )
+        with Session(self.mw.db) as sess:
+            for cat_name in self.edits.keys():
+                cat = sess.scalars(
+                    Select(Category).where(Category.name == cat_name)
+                ).first()
+                runners = list(
+                    sess.scalars(Select(Runner).where(Runner.category == cat)).all()
+                )
 
-            clubs_dict = {}
+                clubs_dict = {}
 
-            for runner in runners:
-                if runner.club not in clubs_dict:
-                    clubs_dict[runner.club] = [runner]
-                else:
-                    clubs_dict[runner.club].append(runner)
+                for runner in runners:
+                    if runner.club not in clubs_dict:
+                        clubs_dict[runner.club] = [runner]
+                    else:
+                        clubs_dict[runner.club].append(runner)
 
-            clubs = list(clubs_dict.values())
+                clubs = list(clubs_dict.values())
 
-            clubs.sort(key=len, reverse=True)
+                clubs.sort(key=len, reverse=True)
 
-            cat_zero = self.edits[cat_name].dateTime().toPython()
+                cat_zero = self.edits[cat_name].dateTime().toPython()
 
-            i = 0
-            while len(clubs) != 0:
-                for club in clubs:
-                    random.shuffle(club)
-                    club[0].startlist_time = cat_zero + baseint_delta * i
-                    club.pop(0)
-                    i += 1
-                while [] in clubs:
-                    clubs.remove([])
+                i = 0
+                while len(clubs) != 0:
+                    for club in clubs:
+                        random.shuffle(club)
+                        club[0].startlist_time = cat_zero + baseint_delta * i
+                        club.pop(0)
+                        i += 1
+                    while [] in clubs:
+                        clubs.remove([])
 
         sess.commit()
-        sess.close()
 
         self.mw.startlist_win._update_startlist()

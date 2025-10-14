@@ -21,40 +21,36 @@ BANDS = ["2m", "80m", "kombinované"]
 
 
 def get_basic_info(database: Engine):
-    sess = Session(database)
-    result = {}
+    with Session(database) as sess:
+        result = {}
 
-    for key in BI_TEMPLATE:
-        val: BasicInfo | None = sess.scalars(
-            Select(BasicInfo).where(BasicInfo.key == BI_TEMPLATE[key])
-        ).one_or_none()
-        if val:
-            result[key] = val.value
-        else:
-            result[key] = None
+        for key in BI_TEMPLATE:
+            val = sess.scalars(
+                Select(BasicInfo).where(BasicInfo.key == BI_TEMPLATE[key])
+            ).one_or_none()
+            if val:
+                result[key] = val.value
+            else:
+                result[key] = None
 
-    sess.close()
-
-    return result
+        return result
 
 
 def set_basic_info(database: Engine, data: dict):
-    sess = Session(database)
+    with Session(database) as sess:
+        for key in data:
+            if not key in BI_TEMPLATE.keys():
+                continue
 
-    for key in data:
-        if not key in BI_TEMPLATE.keys():
-            continue
+            val: BasicInfo | None = sess.scalars(
+                Select(BasicInfo).where(BasicInfo.key == BI_TEMPLATE[key])
+            ).one_or_none()
+            if val:
+                val.value = data[key]
+            else:
+                sess.add(BasicInfo(key=BI_TEMPLATE[key], value=data[key]))
 
-        val: BasicInfo | None = sess.scalars(
-            Select(BasicInfo).where(BasicInfo.key == BI_TEMPLATE[key])
-        ).one_or_none()
-        if val:
-            val.value = data[key]
-        else:
-            sess.add(BasicInfo(key=BI_TEMPLATE[key], value=data[key]))
-
-    sess.commit()
-    sess.close()
+        sess.commit()
 
 
 def get_registered_runners():

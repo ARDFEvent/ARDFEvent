@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from PySide6.QtWidgets import (
     QFileDialog,
     QHBoxLayout,
@@ -10,9 +8,9 @@ from PySide6.QtWidgets import (
 )
 from sqlalchemy import Select
 from sqlalchemy.orm import Session
-from yaml import dump, load
+from yaml import load
 
-from models import Punch, Runner
+from models import Runner
 
 try:
     from yaml import CDumper as Dumper
@@ -55,31 +53,28 @@ class OCheckListWindow(QWidget):
         if not fn:
             return
 
-        sess = Session(self.mw.db)
+        with Session(self.mw.db) as sess:
+            with open(fn) as f:
+                data = load(f, Loader=Loader)["Data"]
+                for runner_base in data:
+                    runner = runner_base["Runner"]
+                    runner_id = int(runner["Id"])
+                    runner_db = sess.scalars(
+                        Select(Runner).where(Runner.id == runner_id)
+                    ).one_or_none()
 
-        with open(fn) as f:
-            data = load(f, Loader=Loader)["Data"]
-            for runner_base in data:
-                runner = runner_base["Runner"]
-                runner_id = int(runner["Id"])
-                runner_db = sess.scalars(
-                    Select(Runner).where(Runner.id == runner_id)
-                ).one_or_none()
+                    if not runner_db:
+                        continue
+                    elif runner_db.ocheck_processed:
+                        continue
 
-                if not runner_db:
-                    continue
-                elif runner_db.ocheck_processed:
-                    continue
+                    if runner["StartStatus"] == "DNS":
+                        self.log.append(f"{runner_db.name}: DNS")
+                        runner_db.manual_dns = True
 
-                if runner["StartStatus"] == "DNS":
-                    self.log.append(f"{runner_db.name}: DNS")
-                    runner_db.manual_dns = True
-
-                if "NewCard" in runner:
-                    self.log.append(
-                        f"{runner_db.name}: SI {runner_db.si} => {runner["NewCard"]}"
-                    )
-                    runner_db.si = runner["NewCard"]
+                    if "NewCard" in runner:
+                        self.log.append(
+                            f"{runner_db.name}: SI {runner_db.si} => {runner["NewCard"]}"
+                        )
 
         sess.commit()
-        sess.close()

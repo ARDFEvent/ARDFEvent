@@ -12,6 +12,7 @@
         <file>icons/startlist.png</file>
         <file>icons/tx.png</file>
         <file>icons/icon.png</file>
+        <file>icons/experimental.png</file>
         <file>sound/error.wav</file>
         <file>font/SpaceMono.ttf</file>
     </qresource>

@@ -1,6 +1,5 @@
 from datetime import datetime
 
-from dateutil.parser import parser
 from PySide6.QtWidgets import (
     QComboBox,
     QDateTimeEdit,
@@ -8,8 +7,8 @@ from PySide6.QtWidgets import (
     QLineEdit,
     QPushButton,
     QSpinBox,
-    QWidget,
-)
+    QWidget, )
+from dateutil.parser import parser
 
 import api
 
@@ -27,6 +26,7 @@ class BasicInfoWindow(QWidget):
         lay.addRow("Jméno", self.name_edit)
 
         self.date_edit = QDateTimeEdit()
+        self.date_edit.setDisplayFormat("dd. MM. yyyy HH:mm")
         lay.addRow("Datum a čas", self.date_edit)
 
         self.org_edit = QLineEdit()
@@ -40,9 +40,9 @@ class BasicInfoWindow(QWidget):
         self.band_select.addItems(api.BANDS)
         lay.addRow("Pásmo", self.band_select)
 
-        ok_btn = QPushButton("OK")
-        ok_btn.clicked.connect(self._on_ok)
-        lay.addRow(ok_btn)
+        self.ok_btn = QPushButton("OK")
+        self.ok_btn.clicked.connect(self._on_ok)
+        lay.addRow(self.ok_btn)
 
     def _on_ok(self):
         api.set_basic_info(

@@ -1,13 +1,13 @@
 from datetime import datetime
 
 from jinja2 import Environment, select_autoescape, FileSystemLoader
+from results import format_delta
 from sqlalchemy import Select
 from sqlalchemy.orm import Session
 
 import api
 from exports import html_common
 from models import Runner
-from results import format_delta
 
 
 def export(filename, db):

@@ -52,10 +52,6 @@ class WelcomeWindow(QWidget):
         del_btn.clicked.connect(self._delete)
         lay.addWidget(del_btn)
 
-        dbstr_btn = QPushButton("Vlastní DB string")
-        dbstr_btn.clicked.connect(self._custom_dbstr)
-        lay.addWidget(dbstr_btn)
-
         self.stage_helper = StagesHelperWindow()
 
         helpers_menu = QMenu(self)
@@ -70,12 +66,6 @@ class WelcomeWindow(QWidget):
         lay.addWidget(self.races_list)
 
         self._load_races()
-
-    def _custom_dbstr(self):
-        dbstr, ok = QInputDialog.getText(self, "Vlastní DB string", "Zadejte DB string")
-        if ok:
-            self.mw.show(dbstr)
-            self.close()
 
     def _load_races(self):
         self.races_list.clear()

@@ -158,68 +158,66 @@ class ResultsWindow(QWidget):
                 f.write(data)
 
     def _update_results(self):
-        sess = Session(self.mw.db)
-        categories = sess.scalars(Select(Category).order_by(Category.name.asc())).all()
+        with Session(self.mw.db) as sess:
+            categories = sess.scalars(Select(Category).order_by(Category.name.asc())).all()
 
-        self.results_table.clear()
-        self.results_table.setRowCount(0)
-        self.results_table.horizontalHeader().setSectionResizeMode(
-            QHeaderView.ResizeMode.ResizeToContents
-        )
-        self.results_table.setColumnCount(5)
-        self.results_table.setRowCount(1000)
+            self.results_table.clear()
+            self.results_table.setRowCount(0)
+            self.results_table.horizontalHeader().setSectionResizeMode(
+                QHeaderView.ResizeMode.ResizeToContents
+            )
+            self.results_table.setColumnCount(5)
+            self.results_table.setRowCount(1000)
 
-        row = 0
+            row = 0
 
-        for category in categories:
-            results_cat = results.calculate_category(self.mw.db, category.name, True)
+            for category in categories:
+                results_cat = results.calculate_category(self.mw.db, category.name, True)
 
-            if not len(results_cat):
-                continue
+                if not len(results_cat):
+                    continue
 
-            cat_name = QTableWidgetItem(category.name)
-            f = cat_name.font()
-            f.setBold(True)
-            f.setPointSize(15)
-            cat_name.setFont(f)
+                cat_name = QTableWidgetItem(category.name)
+                f = cat_name.font()
+                f.setBold(True)
+                f.setPointSize(15)
+                cat_name.setFont(f)
 
-            self.results_table.setItem(row, 0, cat_name)
-            self.results_table.setSpan(row, 1, 1, 4)
+                self.results_table.setItem(row, 0, cat_name)
+                self.results_table.setSpan(row, 1, 1, 4)
 
-            controls = map(lambda x: x.name, category.controls)
-            self.results_table.setItem(row, 1, QTableWidgetItem(", ".join(controls)))
-
-            row += 1
-
-            for person in results_cat:
-                if person.place == 0:
-                    place = person.status
-                else:
-                    place = f"{person.place}."
-
-                self.results_table.setItem(row, 0, QTableWidgetItem(place))
-                self.results_table.setItem(row, 1, QTableWidgetItem(person.name))
-                if person.status not in ["?", "DNS"]:
-                    self.results_table.setItem(
-                        row, 2, QTableWidgetItem(f"{person.tx} TX")
-                    )
-                    self.results_table.setItem(
-                        row,
-                        3,
-                        QTableWidgetItem(" - ".join(map(lambda x: x[0], person.order))),
-                    )
-                    self.results_table.setItem(
-                        row,
-                        4,
-                        QTableWidgetItem(
-                            results.format_delta(timedelta(seconds=person.time))
-                        ),
-                    )
+                controls = map(lambda x: x.name, category.controls)
+                self.results_table.setItem(row, 1, QTableWidgetItem(", ".join(controls)))
 
                 row += 1
-            row += 1
 
-        sess.close()
+                for person in results_cat:
+                    if person.place == 0:
+                        place = person.status
+                    else:
+                        place = f"{person.place}."
+
+                    self.results_table.setItem(row, 0, QTableWidgetItem(place))
+                    self.results_table.setItem(row, 1, QTableWidgetItem(person.name))
+                    if person.status not in ["?", "DNS"]:
+                        self.results_table.setItem(
+                            row, 2, QTableWidgetItem(f"{person.tx} TX")
+                        )
+                        self.results_table.setItem(
+                            row,
+                            3,
+                            QTableWidgetItem(" - ".join(map(lambda x: x[0], person.order))),
+                        )
+                        self.results_table.setItem(
+                            row,
+                            4,
+                            QTableWidgetItem(
+                                results.format_delta(timedelta(seconds=person.time))
+                            ),
+                        )
+
+                    row += 1
+                row += 1
 
     def _show(self):
         self._update_results()

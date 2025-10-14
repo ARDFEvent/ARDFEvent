@@ -17,7 +17,7 @@ from ui import (
     runnerwin,
     startlistdrawwin,
     startlistwin,
-    welcomewin,
+    welcomewin, experimentalwin,
 )
 
 
@@ -30,7 +30,11 @@ class MainWindow(QMainWindow):
     def show(self, dbstr):
         super().show()
 
-        self.db = sqlalchemy.create_engine(dbstr, max_overflow=-1)
+        try:
+            self.db = sqlalchemy.create_engine(dbstr, max_overflow=-1)
+        except:
+            self.db = sqlalchemy.create_engine(dbstr)
+
         models.Base.metadata.create_all(self.db)
 
         self.setWindowTitle(f"JJ ARDFEvent - {api.get_basic_info(self.db)["name"]}")
@@ -39,6 +43,7 @@ class MainWindow(QMainWindow):
         self.controls_win = controlswin.ControlsWindow(self)
         self.categories_win = categorieswin.CategoriesWindow(self)
         self.import_win = importwin.ImportWindow(self)
+        self.robis_win = robiswin.ROBisWindow(self)
         self.runners_win = runnerwin.RunnerWindow(self)
         self.readout_win = readoutwin.ReadoutWindow(self)
         self.results_win = resultswin.ResultsWindow(self)
@@ -46,7 +51,7 @@ class MainWindow(QMainWindow):
         self.startlist_win = startlistwin.StartlistWindow(self)
         self.ochecklist_win = ochecklistwin.OCheckListWindow(self)
         self.inforest_win = runnersinforestwin.RunnersInForestWindow(self)
-        self.robis_win = robiswin.ROBisWindow(self)
+        self.experimental_win = experimentalwin.ExperimentalWindow(self)
 
         self.windows = [
             self.basicinfo_win,
@@ -61,6 +66,7 @@ class MainWindow(QMainWindow):
             self.ochecklist_win,
             self.inforest_win,
             self.robis_win,
+            self.experimental_win,
         ]
 
         self.mainwid = QTabWidget()
@@ -96,6 +102,9 @@ class MainWindow(QMainWindow):
 
         self.mainwid.addTab(self.robis_win, "ROBis")
         self.mainwid.setTabIcon(9, QIcon(":/icons/robis.png"))
+
+        self.mainwid.addTab(self.experimental_win, "Experimentální")
+        self.mainwid.setTabIcon(10, QIcon(":/icons/experimental.png"))
 
         self.mainwid.setTabPosition(QTabWidget.TabPosition.North)
 

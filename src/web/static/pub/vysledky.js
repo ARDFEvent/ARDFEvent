@@ -21,6 +21,9 @@ async function mainProc() {
     const results_elem = document.querySelector("#results");
 
     while (true) {
+        const controls = (await get("/api/categories"))[cat];
+        if (controls) document.querySelector("#controls").innerText = controls;
+
         const announcement = await get("/api/announcement");
         document.querySelector("#name").innerText = `${announcement["name"]} - ${cat}`;
         if (announcement["ann"]) {

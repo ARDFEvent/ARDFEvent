@@ -72,11 +72,10 @@ class ControlsWindow(QWidget):
         self.table.removeRow(self.last_selected.row())
 
     def _set_controls(self, controls):
-        sess = Session(self.mw.db)
-        sess.execute(Delete(Control))
-        sess.add_all(controls)
-        sess.commit()
-        sess.close()
+        with Session(self.mw.db) as sess:
+            sess.execute(Delete(Control))
+            sess.add_all(controls)
+            sess.commit()
 
     def _preset_slow(self):
         self._set_controls(
@@ -194,17 +193,15 @@ class ControlsWindow(QWidget):
         self.table.setItem(i, 3, it_spectator)
 
     def _update_table(self):
-        sess = Session(self.mw.db)
-        controls = sess.scalars(Select(Control)).all()
+        with Session(self.mw.db) as sess:
+            controls = sess.scalars(Select(Control)).all()
 
-        self.table.setRowCount(0)
+            self.table.setRowCount(0)
 
-        i = 0
-        for control in controls:
-            self._add_control(control, i)
-            i += 1
-
-        sess.close()
+            i = 0
+            for control in controls:
+                self._add_control(control, i)
+                i += 1
 
     def _show(self):
         self._update_table()

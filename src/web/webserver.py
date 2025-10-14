@@ -84,7 +84,7 @@ class ARDFEventServer:
             json.dumps({"name": api.get_basic_info(self.db)["name"],
                         "date_tzero": datetime.fromisoformat(api.get_basic_info(self.db)["date_tzero"]).strftime(
                             "%d. %m. %Y, %H:%M"), "ann": self.announcement,
-                        "robis": bool(api.get_basic_info(self.db)["robis_api"])}),
+                        "robis": api.get_basic_info(self.db)["robis_api"] != ""}),
             content_type="application/json",
             charset="UTF-8",
         )

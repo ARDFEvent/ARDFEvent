@@ -63,7 +63,7 @@ class StartlistWindow(QWidget):
         fn = QFileDialog.getSaveFileName(
             self,
             "Export startovky do CSV pro ROBis",
-            filter=("ROBis CSV (*.csv)"),
+            filter="ROBis CSV (*.csv)",
         )[0]
 
         if fn:
@@ -76,7 +76,7 @@ class StartlistWindow(QWidget):
         fn = QFileDialog.getSaveFileName(
             self,
             "Export startovky do IOF XML 3.0",
-            filter=("IOF XML 3.0 (*.xml)"),
+            filter="IOF XML 3.0 (*.xml)",
         )[0]
 
         if fn:
@@ -86,36 +86,33 @@ class StartlistWindow(QWidget):
             )
 
     def _update_startlist(self):
-        sess = Session(self.mw.db)
+        with Session(self.mw.db) as sess:
+            self.startlist_table.setSortingEnabled(True)
+            self.startlist_table.horizontalHeader().setSectionResizeMode(
+                QHeaderView.ResizeMode.ResizeToContents
+            )
+            self.startlist_table.clear()
+            self.startlist_table.setColumnCount(5)
+            self.startlist_table.setHorizontalHeaderLabels(
+                ["Čas startu", "Jméno", "Kategorie", "Index", "SI"]
+            )
+            self.startlist_table.setRowCount(1000)
 
-        self.startlist_table.setSortingEnabled(True)
-        self.startlist_table.horizontalHeader().setSectionResizeMode(
-            QHeaderView.ResizeMode.ResizeToContents
-        )
-        self.startlist_table.clear()
-        self.startlist_table.setColumnCount(5)
-        self.startlist_table.setHorizontalHeaderLabels(
-            ["Čas startu", "Jméno", "Kategorie", "Index", "SI"]
-        )
-        self.startlist_table.setRowCount(1000)
+            row = 0
 
-        row = 0
+            for person in sess.scalars(Select(Runner)).all():
+                starttime = person.startlist_time
+                if starttime is None:
+                    starttime = "-"
+                else:
+                    starttime = starttime.strftime("%H:%M:%S")
+                self.startlist_table.setItem(row, 0, QTableWidgetItem(starttime))
+                self.startlist_table.setItem(row, 1, QTableWidgetItem(person.name))
+                self.startlist_table.setItem(row, 2, QTableWidgetItem(person.category.name))
+                self.startlist_table.setItem(row, 3, QTableWidgetItem(person.reg))
+                self.startlist_table.setItem(row, 4, QTableWidgetItem(str(person.si)))
 
-        for person in sess.scalars(Select(Runner)).all():
-            starttime = person.startlist_time
-            if starttime is None:
-                starttime = "-"
-            else:
-                starttime = starttime.strftime("%H:%M:%S")
-            self.startlist_table.setItem(row, 0, QTableWidgetItem(starttime))
-            self.startlist_table.setItem(row, 1, QTableWidgetItem(person.name))
-            self.startlist_table.setItem(row, 2, QTableWidgetItem(person.category.name))
-            self.startlist_table.setItem(row, 3, QTableWidgetItem(person.reg))
-            self.startlist_table.setItem(row, 4, QTableWidgetItem(str(person.si)))
-
-            row += 1
-
-        sess.close()
+                row += 1
 
     def _show(self):
         self._update_startlist()

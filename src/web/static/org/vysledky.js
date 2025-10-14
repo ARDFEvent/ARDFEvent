@@ -72,7 +72,7 @@ async function mainProc() {
             ann_elem.style.display = "none";
         }
 
-        if (announcement.robis !== "") {
+        if (announcement.robis) {
             results_elem.innerHTML = "";
             ann_elem.children[0].innerHTML = `ŽIVÉ VÝSLEDKY I NA ROBISU<br><img src="robisqr.png">`
             document.querySelector("#cat-name").textContent = "ROBis";

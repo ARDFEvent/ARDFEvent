@@ -2,7 +2,6 @@ import json
 from datetime import datetime, timedelta
 
 import requests
-from dateutil.parser import parser
 from PySide6.QtCore import QByteArray, QUrl, Slot
 from PySide6.QtNetwork import QNetworkAccessManager, QNetworkReply, QNetworkRequest
 from PySide6.QtWidgets import (
@@ -42,7 +41,7 @@ class ROBisWindow(QWidget):
 
         self.etap_edit = QSpinBox()
         self.etap_edit.setRange(0, 10000)
-        lay.addRow("Číslo etapy (EX)", self.etap_edit)
+        lay.addRow("ID etapy", self.etap_edit)
 
         self.ok_btn = QPushButton("OK")
         self.ok_btn.clicked.connect(self._on_ok)
@@ -105,30 +104,32 @@ class ROBisWindow(QWidget):
         )
 
     def _download(self):
-        response = requests.get(
+        response_event = requests.get(
             f"https://rob-is.cz/api/?type=json&name=event&event_id={self.id_edit.value()}",
             headers={"Race-Api-Key": self.api_edit.text()},
         )
-        if response.status_code != 200:
+        response_race = requests.get(
+            f"https://rob-is.cz/api/?type=json&name=race&race_id={self.etap_edit.value()}",
+            headers={"Race-Api-Key": self.api_edit.text()},
+        )
+        if response_race.status_code != 200 or response_event.status_code != 200:
             QMessageBox.critical(
                 self,
                 "Chyba",
-                f"Stahování se nezdařilo: {response.status_code} {response.text}",
+                f"Stahování se nezdařilo: {response_race.status_code} {response_race.text}",
             )
             return
-        props = response.json()["properties"]
-        race = props["races"][self.etap_edit.value() - 1]
 
-        limit_str = race["race_time_limit"].split(":")
-        limit = int(limit_str[0]) * 60 + int(limit_str[1])
+        race = response_race.json()
+        event = response_event.json()
 
         api.set_basic_info(
             self.mw.db,
             {
-                "name": props["event_name"] + " - " + race["race_name"],
-                "date_tzero": parser().parse(race["race_start"]).isoformat(),
-                "organizer": props["event_organiser"],
-                "limit": limit,
+                "name": f"{event["event_name"]} - {race["race_name"]}",
+                # "date_tzero": parser().parse(race["race_start"]).isoformat(),
+                "organizer": event["event_organiser"],
+                # "limit": race["race_time_limit"],
                 "band": api.BANDS[["M2", "M80", "COMBINED"].index(race["race_band"])],
             },
         )
@@ -138,9 +139,9 @@ class ROBisWindow(QWidget):
 
         for cat in race["categories"]:
             if not len(
-                sess.scalars(
-                    Select(Category).where(Category.name == cat["category_name"])
-                ).all()
+                    sess.scalars(
+                        Select(Category).where(Category.name == cat["category_name"])
+                    ).all()
             ):
                 sess.add(
                     Category(
@@ -185,7 +186,9 @@ class ROBisWindow(QWidget):
 
         categories = []
         if not all:
-            runner = sess.scalars(Select(Runner).where(Runner.si == si)).one()
+            runner = sess.scalars(Select(Runner).where(Runner.si == si)).one_or_none()
+            if not runner:
+                return
             categories = [runner.category]
         else:
             runner = None
