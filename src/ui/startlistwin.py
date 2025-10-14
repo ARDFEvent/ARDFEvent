@@ -7,8 +7,7 @@ from PySide6.QtWidgets import (
     QTableWidget,
     QTableWidgetItem,
     QVBoxLayout,
-    QWidget,
-)
+    QWidget, )
 from sqlalchemy import Select
 from sqlalchemy.orm import Session
 
@@ -44,7 +43,7 @@ class StartlistWindow(QWidget):
         btn_lay.addWidget(export_btn)
 
         draw_win_btn = QPushButton("Losovat startovku")
-        draw_win_btn.clicked.connect(self.mw.startlistdraw_win.show)
+        draw_win_btn.clicked.connect(self.mw.startlistdraw_win.setup_win.show)
         btn_lay.addWidget(draw_win_btn)
 
         btn_lay.addStretch()
@@ -87,7 +86,8 @@ class StartlistWindow(QWidget):
 
     def _update_startlist(self):
         with Session(self.mw.db) as sess:
-            self.startlist_table.setSortingEnabled(True)
+            self.startlist_table.setSortingEnabled(False)
+            self.startlist_table.clear()
             self.startlist_table.horizontalHeader().setSectionResizeMode(
                 QHeaderView.ResizeMode.ResizeToContents
             )
@@ -113,6 +113,7 @@ class StartlistWindow(QWidget):
                 self.startlist_table.setItem(row, 4, QTableWidgetItem(str(person.si)))
 
                 row += 1
+            self.startlist_table.setSortingEnabled(True)
 
     def _show(self):
         self._update_startlist()
