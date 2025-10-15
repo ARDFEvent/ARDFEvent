@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from PySide6.QtWidgets import (
     QHBoxLayout,
@@ -13,6 +13,7 @@ from PySide6.QtWidgets import (
 from sqlalchemy import Select
 from sqlalchemy.orm import Session
 
+import api
 from models import Punch, Runner
 from results import format_delta
 
@@ -74,7 +75,12 @@ class RunnersInForestWindow(QWidget):
         ).all()
 
         self.gen_label.setText(
-            f"Generováno v {now.strftime("%H:%M:%S")}, {len(in_forest)} osob v lese, {len(finished)} dokončilo, {len(not_started_yet)} ještě nestartovalo"
+            f"Generováno v {now.strftime("%H:%M:%S")}, "
+            + (
+                "VŠICHNI V CÍLI!" if not in_forest else f"{len(in_forest)} osob v lese, {len(finished)} dokončilo, "
+                                                        f"{len(not_started_yet)} ještě nestartovalo, "
+                                                        f"limit posledního v lese: {(in_forest[-1].startlist_time + timedelta(minutes=int(api.get_basic_info(self.mw.db)["limit"]))).strftime("%H:%M:%S")}"
+            )
         )
 
         self.runners_table.clear()
