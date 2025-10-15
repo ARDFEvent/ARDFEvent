@@ -60,8 +60,8 @@
 <h2>Startovka po minutách</h2>
 <br>
 <table>
-    <tbody>
     {% for minute in minutes %}
+    <tbody style="page-break-inside: avoid;">
     <tr>
         <td colspan="4">
             <hr>
@@ -80,8 +80,8 @@
         <td>{{ runner.si }}</td>
     </tr>
     {% endfor %}
-    {% endfor %}
     </tbody>
+    {% endfor %}
 </table>
 <span id="footer">JJ ARDFEvent, &copy; Jakub Jiroutek</span>
 </body>

@@ -58,16 +58,12 @@
 <body>
 <h1>{{ event.name }}</h1>
 <h2>Startovka</h2>
-<span>Datum: {{ event.date }}<br>
-        První start: {{ event.first_start }}<br>
-        Pořadatel: {{ event.organizer }}<br>
-        Limit: {{ event.limit }} min<br>
-        Pásmo: {{ event.band }}
-    </span>
+<span>Datum: <b>{{ event.date }}</b>, první start: <b>{{ event.first_start }}</b><br>Pořadatel: <b>{{ event.organizer }}</b><br>
+    Limit: <b>{{ event.limit }} min</b>, pásmo: <b>{{ event.band }}</b></span>
 <br><br>
 <table>
-    <tbody>
     {% for category in categories %}
+    <tbody style="page-break-inside: avoid;">
     <tr>
         <td colspan="5">
             <h3 style="display: inline-block;">{{ category.name }}</h3>
@@ -83,8 +79,8 @@
         <td>{{ runner.si }}</td>
     </tr>
     {% endfor %}
-    {% endfor %}
     </tbody>
+    {% endfor %}
 </table>
 <span id="footer">JJ ARDFEvent, &copy; Jakub Jiroutek</span>
 </body>
