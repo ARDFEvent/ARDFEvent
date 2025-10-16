@@ -76,7 +76,7 @@ def export(db: Engine) -> str:
                 {
                     "competitor_category_name": category.name,
                     "place": person.place if person.place != 0 else person.status,
-                    "start_number": i,
+                    "start_number": None,
                     "last_name": person.name.split(", ")[0],
                     "first_name": person.name.split(", ")[1],
                     "si_number": person.si,

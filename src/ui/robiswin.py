@@ -14,12 +14,14 @@ from PySide6.QtWidgets import (
     QTextBrowser,
     QWidget,
 )
+from dateutil.parser import parser
 from sqlalchemy import Delete, Select
 from sqlalchemy.orm import Session
 
 import api
 import results
 from exports import json_results as res_json
+from exports import json_startlist as stl_json
 from models import Category, Runner
 
 
@@ -55,6 +57,10 @@ class ROBisWindow(QWidget):
         self.download_btn.clicked.connect(self._download)
         lay.addRow(self.download_btn)
 
+        self.startlistcontrols_btn = QPushButton("Nahrát startovku")
+        self.startlistcontrols_btn.clicked.connect(self._upload_stlcontrols)
+        lay.addRow(self.startlistcontrols_btn)
+
         self.update_btn = QPushButton("Aktualizovat všechny online výsledky")
         self.update_btn.clicked.connect(
             lambda: self._send_online_readout(self.mw.db, 0, True)
@@ -62,7 +68,7 @@ class ROBisWindow(QWidget):
         lay.addRow(self.update_btn)
 
         self.upload_btn = QPushButton("Nahrát výsledky")
-        self.upload_btn.clicked.connect(self._upload)
+        self.upload_btn.clicked.connect(self._upload_res)
         lay.addRow(self.upload_btn)
 
         lay.addRow(QLabel(""))
@@ -89,7 +95,21 @@ class ROBisWindow(QWidget):
         self.id_edit.setValue(int(basic_info["robis_id"]))
         self.etap_edit.setValue(int(basic_info["robis_etap"]))
 
-    def _upload(self):
+    def _upload_stlcontrols(self):
+        response = requests.post(
+            "https://rob-is.cz/api/startlist/?valid=True",
+            stl_json.export(self.mw.db),
+            headers={
+                "Race-Api-Key": self.api_edit.text(),
+                "Content-Type": "application/json",
+            },
+        )
+
+        self.log.append(
+            f"{datetime.now().strftime("%H:%M:%S")} - Startovka: {response.status_code} {response.text}"
+        )
+
+    def _upload_res(self):
         response = requests.post(
             "https://rob-is.cz/api/results/?valid=True",
             res_json.export(self.mw.db),
@@ -127,9 +147,9 @@ class ROBisWindow(QWidget):
             self.mw.db,
             {
                 "name": f"{event["event_name"]} - {race["race_name"]}",
-                # "date_tzero": parser().parse(race["race_start"]).isoformat(),
+                "date_tzero": parser().parse(race["race_start"]).isoformat(),
                 "organizer": event["event_organiser"],
-                # "limit": race["race_time_limit"],
+                "limit": race["race_time_limit"],
                 "band": api.BANDS[["M2", "M80", "COMBINED"].index(race["race_band"])],
             },
         )

@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 
 import exports.html_startlist as stl_html
 import exports.html_startlist_minutes as stl_min_html
+import exports.json_startlist as stl_json
 import exports.robis_csv_startlist as stl_robis_csv
 import exports.xml_startlist as stl_xml
 from models import Runner
@@ -36,6 +37,7 @@ class StartlistWindow(QWidget):
         export_menu.addAction("HTML po kategoriích", self._export_html)
         export_menu.addAction("HTML po minutách", self._export_html_minutes)
         export_menu.addAction("CSV pro ROBis", self._export_robis_csv)
+        export_menu.addAction("JSON pro ROBis", self._export_json)
         export_menu.addAction("IOF XML 3.0", self._export_iof_xml)
 
         export_btn = QPushButton("Exportovat")
@@ -57,6 +59,20 @@ class StartlistWindow(QWidget):
 
     def _export_html_minutes(self):
         self.pws.append(PreviewWindow(stl_min_html.generate(self.mw.db)))
+
+    def _export_json(self):
+        fn = QFileDialog.getSaveFileName(
+            self,
+            "Export startovky do ROBis JSON",
+            filter=("ROBis JSON (*.json)"),
+        )[0]
+
+        if fn:
+            data = stl_json.export(self.mw.db)
+            if not fn.endswith(".json"):
+                fn += ".json"
+            with open(fn, "w") as f:
+                f.write(data)
 
     def _export_robis_csv(self):
         fn = QFileDialog.getSaveFileName(
