@@ -27,4 +27,4 @@ elif MODE == "rust":
 
     def calculate_category(db: Engine, name: str, include_unknown: bool = False):
         return calculate_category_raw(db.url.database, name, include_unknown,
-                                      datetime.now().replace(tzinfo=timezone.utc))
+                                      int(datetime.now().replace(tzinfo=timezone.utc).timestamp()))

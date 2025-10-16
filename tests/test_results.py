@@ -16,7 +16,7 @@ class TestResults(unittest.TestCase):
         eng = create_engine(f"sqlite:///{TESTPATH}")
         with Session(eng) as sess:
             for cat in sess.scalars(Select(Category)):
-                now = datetime.now().replace(tzinfo=timezone.utc)
+                now = int(datetime.now().replace(tzinfo=timezone.utc).timestamp())
                 pyres = py_results.calculate_category(eng, cat.name, True, now)
                 rustres = rust_results.calculate_category(TESTPATH, cat.name, True, now)
                 self.assertEqual(len(pyres), len(rustres))

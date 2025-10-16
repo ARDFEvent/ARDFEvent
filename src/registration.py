@@ -15,13 +15,15 @@ def map_runner(orig: dict):
 
 
 def download():
+    if (Path.home() / ".ardfevent/runners.json").exists() and (Path.home() / ".ardfevent/clubs.json").exists():
+        return
     clubs_raw = requests.get("https://rob-is.cz/api/club/").json()
 
     runners_raw = requests.get("https://rob-is.cz/api/members_all/").json()[
         "all_members"
     ]
     with open(Path.home() / ".ardfevent/clubs.json", "w+") as cf, open(
-        Path.home() / ".ardfevent/runners.json", "w+"
+            Path.home() / ".ardfevent/runners.json", "w+"
     ) as rf:
         clubs = {}
 

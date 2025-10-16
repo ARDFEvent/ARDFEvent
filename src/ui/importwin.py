@@ -8,12 +8,9 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-from sqlalchemy import Delete, Select
-from sqlalchemy.orm import Session
 
 import api
 import import_runners
-from models import Category, Runner
 
 
 class ImportWindow(QWidget):
@@ -41,6 +38,9 @@ class ImportWindow(QWidget):
 
     def _select_file(self):
         file = QFileDialog.getOpenFileName(self, "Import CSV", filter="CSV (*.csv)")
+
+        if not file[0]:
+            return
 
         with open(file[0], "r") as f:
             reader = csv.reader(f, delimiter=";")

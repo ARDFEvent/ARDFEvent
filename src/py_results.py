@@ -34,7 +34,8 @@ class Result:
         self.finish = finish
 
 
-def calculate_category(db: Engine, name: str, include_unknown: bool = False, now=datetime.now(timezone.utc)):
+def calculate_category(db: Engine, name: str, include_unknown: bool = False,
+                       now=int(datetime.now(timezone.utc).timestamp())):
     limit = int(api.get_basic_info(db)["limit"])
 
     sess = Session(db)
@@ -101,9 +102,8 @@ def calculate_category(db: Engine, name: str, include_unknown: bool = False, now
                         (
                             0
                             if not start
-                            else round((
-                                           now - start if now > start else -(start - now)
-                                       ).total_seconds())
+                            else now - int(start.timestamp()) if now > int(start.timestamp()) else -(
+                                    int(start.timestamp()) - now)
                         ),
                         "?",
                         [],

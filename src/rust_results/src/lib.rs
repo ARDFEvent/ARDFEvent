@@ -89,7 +89,7 @@ mod rust_results {
     }
 
     #[pyfunction]
-    fn calculate_category(_py: Python, _db_path: String, _name: String, _include_unknown: bool, now: DateTime<Utc>) -> PyResult<Vec<OResult>> {
+    fn calculate_category(_py: Python, _db_path: String, _name: String, _include_unknown: bool, now: i64) -> PyResult<Vec<OResult>> {
         let mut results: Vec<OResult> = Vec::new();
 
         let conn = rusqlite::Connection::open(&_db_path)
@@ -219,7 +219,7 @@ mod rust_results {
 
             if punches.is_empty() {
                 if _include_unknown {
-                    push_result(&mut results, per, "?", 0, if start.is_none() { 0 } else { now.timestamp() - start.unwrap().timestamp() }, vec![], 0, start, None);
+                    push_result(&mut results, per, "?", 0, if start.is_none() { 0 } else { now - start.unwrap().timestamp() }, vec![], 0, start, None);
                 }
                 continue;
             }
