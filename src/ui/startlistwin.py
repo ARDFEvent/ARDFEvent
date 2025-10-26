@@ -48,6 +48,10 @@ class StartlistWindow(QWidget):
         draw_win_btn.clicked.connect(self.mw.startlistdraw_win.setup_win.show)
         btn_lay.addWidget(draw_win_btn)
 
+        startno_win_btn = QPushButton("Startovní čísla")
+        startno_win_btn.clicked.connect(self.mw.startno_win.show)
+        btn_lay.addWidget(startno_win_btn)
+
         btn_lay.addStretch()
 
         self.startlist_table = QTableWidget()

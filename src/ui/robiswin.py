@@ -22,7 +22,7 @@ import api
 import results
 from exports import json_results as res_json
 from exports import json_startlist as stl_json
-from models import Category, Runner
+from models import Category, Runner, Control
 
 
 class ROBisWindow(QWidget):
@@ -57,7 +57,7 @@ class ROBisWindow(QWidget):
         self.download_btn.clicked.connect(self._download)
         lay.addRow(self.download_btn)
 
-        self.startlistcontrols_btn = QPushButton("Nahrát startovku")
+        self.startlistcontrols_btn = QPushButton("Nahrát startovku a kontroly")
         self.startlistcontrols_btn.clicked.connect(self._upload_stlcontrols)
         lay.addRow(self.startlistcontrols_btn)
 
@@ -96,7 +96,7 @@ class ROBisWindow(QWidget):
         self.etap_edit.setValue(int(basic_info["robis_etap"]))
 
     def _upload_stlcontrols(self):
-        response = requests.post(
+        response_stl = requests.post(
             "https://rob-is.cz/api/startlist/?valid=True",
             stl_json.export(self.mw.db),
             headers={
@@ -106,7 +106,40 @@ class ROBisWindow(QWidget):
         )
 
         self.log.append(
-            f"{datetime.now().strftime("%H:%M:%S")} - Startovka: {response.status_code} {response.text}"
+            f"{datetime.now().strftime("%H:%M:%S")} - Startovka: {response_stl.status_code} {response_stl.text}"
+        )
+
+        cats = []
+
+        with Session(self.mw.db) as sess:
+            for dbcat in sess.scalars(Select(Category)).all():
+                cat = {"category_name": dbcat.name, "category_control_points": []}
+                for control in dbcat.controls:
+                    cat["category_control_points"].append(
+                        {"si_code": control.code, "control_type": "BEACON" if control.mandatory else "CONTROL"})
+                cats.append(cat)
+
+            aliases = []
+
+            for cont in sess.scalars(Select(Control)).all():
+                for alias in aliases:
+                    if alias["alias_si_code"] == cont.code:
+                        alias["alias_name"] += f"/{cont.name}"
+                        break
+                else:
+                    aliases.append({"alias_si_code": cont.code, "alias_name": cont.name})
+
+        response_controls = requests.put(
+            "https://rob-is.cz/api/race/",
+            json={"categories": cats, "aliases": aliases},
+            headers={
+                "Race-Api-Key": self.api_edit.text(),
+                "Content-Type": "application/json",
+            }
+        )
+
+        self.log.append(
+            f"{datetime.now().strftime("%H:%M:%S")} - Kontroly: {response_controls.status_code} {response_controls.text}"
         )
 
     def _upload_res(self):

@@ -28,7 +28,7 @@ def export(db: Engine) -> str:
                 starttime_txt = starttime.strftime("%H:%M:%S")
             runners.append(
                 {
-                    "start_number": None,
+                    "start_number": person.startno,
                     "first_name": person.name.split(", ")[1],
                     "last_name": person.name.split(", ")[0],
                     "competitor_index": person.reg,

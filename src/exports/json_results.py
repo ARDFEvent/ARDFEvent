@@ -22,8 +22,6 @@ def export(db: Engine) -> str:
     cat_props = []
     res_arr = []
 
-    i = 1
-
     for category in categories:
         name = category.name
         controls = ", ".join(map(lambda x: x.name, category.controls))
@@ -76,7 +74,7 @@ def export(db: Engine) -> str:
                 {
                     "competitor_category_name": category.name,
                     "place": person.place if person.place != 0 else person.status,
-                    "start_number": None,
+                    "start_number": person.startno or None,
                     "last_name": person.name.split(", ")[0],
                     "first_name": person.name.split(", ")[1],
                     "si_number": person.si,
@@ -88,7 +86,6 @@ def export(db: Engine) -> str:
                     "punches": order,
                 }
             )
-            i += 1
 
     sess.close()
 

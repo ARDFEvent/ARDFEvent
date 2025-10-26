@@ -17,7 +17,9 @@ from ui import (
     runnerwin,
     startlistdrawwin,
     startlistwin,
-    welcomewin, experimentalwin,
+    welcomewin,
+    experimentalwin,
+    startnowin,
 )
 
 
@@ -47,6 +49,7 @@ class MainWindow(QMainWindow):
         self.runners_win = runnerwin.RunnerWindow(self)
         self.readout_win = readoutwin.ReadoutWindow(self)
         self.results_win = resultswin.ResultsWindow(self)
+        self.startno_win = startnowin.StartNumberWindow(self)
         self.startlistdraw_win = startlistdrawwin.StartlistDrawWindow(self)
         self.startlist_win = startlistwin.StartlistWindow(self)
         self.ochecklist_win = ochecklistwin.OCheckListWindow(self)
@@ -63,6 +66,7 @@ class MainWindow(QMainWindow):
             self.results_win,
             self.startlist_win,
             self.startlistdraw_win,
+            self.startlist_win,
             self.ochecklist_win,
             self.inforest_win,
             self.robis_win,

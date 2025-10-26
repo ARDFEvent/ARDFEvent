@@ -17,6 +17,7 @@ from PySide6.QtWidgets import (
 )
 
 import api
+import migrations
 import models
 from helpers.stages import StagesHelperWindow
 
@@ -74,6 +75,7 @@ class WelcomeWindow(QWidget):
 
         for file in (Path.home() / ".ardfevent").glob("*.sqlite"):
             try:
+                migrations.migrate(f"sqlite:///{file}")
                 self.db = sqlalchemy.create_engine(f"sqlite:///{file}", max_overflow=-1)
 
                 title = f"{datetime.fromisoformat(api.get_basic_info(self.db)["date_tzero"]).strftime('%d.%m.%Y %H:%M')} - {api.get_basic_info(self.db)["name"]} ({file.name})"

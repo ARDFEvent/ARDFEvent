@@ -79,11 +79,11 @@ class RunnerWindow(QWidget):
             self.reg_edit = QLineEdit()
             details_lay.addRow("Reg. číslo", self.reg_edit)
 
-            self.call_edit = QLineEdit()
-            details_lay.addRow("Volačka", self.call_edit)
-
             self.category_edit = QComboBox()
             details_lay.addRow("Kategorie", self.category_edit)
+
+            self.startno_edit = QSpinBox()
+            details_lay.addRow("Startovní číslo", self.startno_edit)
 
             self.starttime_edit = QTimeEdit()
             self.starttime_edit.setDisplayFormat("HH:mm:ss")
@@ -141,7 +141,7 @@ class RunnerWindow(QWidget):
                 runner.club = self.club_edit.text()
                 runner.si = self.SI_edit.text()
                 runner.reg = self.reg_edit.text()
-                runner.call = self.call_edit.text()
+                runner.startno = self.startno_edit.value() or None
                 if self.starttime_edit.isEnabled():
                     runner.startlist_time = (
                         self.starttime_edit.dateTime().toPython().astimezone()
@@ -176,7 +176,7 @@ class RunnerWindow(QWidget):
                 self.club_edit.setText(runner.club)
                 self.SI_edit.setValue(runner.si)
                 self.reg_edit.setText(runner.reg)
-                self.call_edit.setText(runner.call)
+                self.startno_edit.setValue(runner.startno or 0)
                 if runner.startlist_time:
                     self.starttime_edit.setDisabled(False)
                     self.starttime_edit.setDateTime(
