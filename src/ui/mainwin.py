@@ -12,7 +12,6 @@ from ui import (
     ochecklistwin,
     readoutwin,
     resultswin,
-    robiswin,
     runnersinforestwin,
     runnerwin,
     startlistdrawwin,
@@ -29,23 +28,10 @@ class MainWindow(QMainWindow):
 
         self.welcomewin = welcomewin.WelcomeWindow(self)
 
-    def show(self, dbstr):
-        super().show()
-
-        try:
-            self.db = sqlalchemy.create_engine(dbstr, max_overflow=-1)
-        except:
-            self.db = sqlalchemy.create_engine(dbstr)
-
-        models.Base.metadata.create_all(self.db)
-
-        self.setWindowTitle(f"JJ ARDFEvent - {api.get_basic_info(self.db)["name"]}")
-
         self.basicinfo_win = basicinfowin.BasicInfoWindow(self)
         self.controls_win = controlswin.ControlsWindow(self)
         self.categories_win = categorieswin.CategoriesWindow(self)
         self.import_win = importwin.ImportWindow(self)
-        self.robis_win = robiswin.ROBisWindow(self)
         self.runners_win = runnerwin.RunnerWindow(self)
         self.readout_win = readoutwin.ReadoutWindow(self)
         self.results_win = resultswin.ResultsWindow(self)
@@ -69,13 +55,11 @@ class MainWindow(QMainWindow):
             self.startlist_win,
             self.ochecklist_win,
             self.inforest_win,
-            self.robis_win,
             self.experimental_win,
         ]
 
         self.mainwid = QTabWidget()
         self.setCentralWidget(self.mainwid)
-        self.mainwid.currentChanged.connect(self._on_tab_changed)
 
         self.mainwid.addTab(self.basicinfo_win, "Základní info")
         self.mainwid.setTabIcon(0, QIcon(":/icons/gear.png"))
@@ -104,13 +88,25 @@ class MainWindow(QMainWindow):
         self.mainwid.addTab(self.inforest_win, "Závodníci v lese")
         self.mainwid.setTabIcon(8, QIcon(":/icons/inforest.png"))
 
-        self.mainwid.addTab(self.robis_win, "ROBis")
-        self.mainwid.setTabIcon(9, QIcon(":/icons/robis.png"))
-
         self.mainwid.addTab(self.experimental_win, "Experimentální")
-        self.mainwid.setTabIcon(10, QIcon(":/icons/experimental.png"))
+        self.mainwid.setTabIcon(9, QIcon(":/icons/experimental.png"))
 
         self.mainwid.setTabPosition(QTabWidget.TabPosition.North)
+
+    def show(self, dbstr):
+        try:
+            self.db = sqlalchemy.create_engine(dbstr, max_overflow=-1)
+        except:
+            self.db = sqlalchemy.create_engine(dbstr)
+
+        self.mainwid.currentChanged.connect(self._on_tab_changed)
+
+        super().show()
+        self.windows[0]._show()
+
+        models.Base.metadata.create_all(self.db)
+
+        self.setWindowTitle(f"JJ ARDFEvent - {api.get_basic_info(self.db)["name"]}")
 
         self.showMaximized()
 

@@ -2,6 +2,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QPixmap, QFontDatabase
 from PySide6.QtWidgets import QApplication, QSplashScreen
 
+import pluginmanager
 # noinspection PyUnresolvedReferences
 from ui import resources_init
 
@@ -57,10 +58,21 @@ if __name__ == "__main__":
 
     win = mainwin.MainWindow()
 
+    pl = pluginmanager.PluginManager(win)
+    win.pl = pl
+    for status, plugin in pl.load():
+        if status:
+            splash.showMessage(f"Načten {plugin["name"]}")
+            app.processEvents()
+        else:
+            splash.showMessage(f"Plugin {plugin["name"]} nenačten - nelze ověřit podpis.")
+            app.processEvents()
+            time.sleep(1)
+
     splash.showMessage("Vítejte v ARDFEventu!")
     app.processEvents()
 
-    time.sleep(1.5)
+    time.sleep(1)
 
     splash.close()
     app.processEvents()

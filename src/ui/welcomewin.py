@@ -19,7 +19,7 @@ from PySide6.QtWidgets import (
 import api
 import migrations
 import models
-from helpers.stages import StagesHelperWindow
+from ui.pluginmanagerwin import PluginManagerWindow
 
 
 class WelcomeWindow(QWidget):
@@ -53,13 +53,14 @@ class WelcomeWindow(QWidget):
         del_btn.clicked.connect(self._delete)
         lay.addWidget(del_btn)
 
-        self.stage_helper = StagesHelperWindow()
+        self.helpers_menu = QMenu(self)
 
-        helpers_menu = QMenu(self)
-        helpers_menu.addAction("Etapový závod", self.stage_helper.show)
+        self.pluginmanagerwin = PluginManagerWindow(self.mw)
+
+        self.helpers_menu.addAction("Správce pluginů", self.pluginmanagerwin.show)
 
         helpers_btn = QPushButton("Nástroje")
-        helpers_btn.setMenu(helpers_menu)
+        helpers_btn.setMenu(self.helpers_menu)
         lay.addWidget(helpers_btn)
 
         self.races_list = QListWidget()

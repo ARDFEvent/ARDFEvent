@@ -88,7 +88,7 @@ def calculate_category(db: Engine, name: str, include_unknown: bool = False,
         start = None if not runner.startlist_time else runner.startlist_time.replace(tzinfo=timezone.utc)
         finish = None
 
-        punches = sess.scalars(Select(Punch).where(Punch.si == runner.si)).all()
+        punches = sess.scalars(Select(Punch).where(Punch.si == runner.si).order_by(Punch.time)).all()
         order = []
 
         if len(punches) == 0:
@@ -125,9 +125,9 @@ def calculate_category(db: Engine, name: str, include_unknown: bool = False,
             else:
                 control = sess.scalars(
                     Select(Control).where(Control.code == punch.code)
-                ).one_or_none()
+                ).all()
                 if control:
-                    order.append((f"{control.name}+", punch.time.replace(tzinfo=timezone.utc), "AP"))
+                    order.append((f"{control[0].name}+", punch.time.replace(tzinfo=timezone.utc), "AP"))
 
             if punch.code in loc_mandatory:
                 mandatory_cnt += 1

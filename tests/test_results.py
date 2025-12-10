@@ -6,6 +6,7 @@ from sqlalchemy import create_engine, Select
 from sqlalchemy.orm import Session
 
 import py_results
+from migrations import migrate
 from models import Category
 
 TESTPATH = "/home/jacobcz/.ardfevent/test/testrace.sqlite"
@@ -13,6 +14,7 @@ TESTPATH = "/home/jacobcz/.ardfevent/test/testrace.sqlite"
 
 class TestResults(unittest.TestCase):
     def test_results(self):
+        migrate(f"sqlite:///{TESTPATH}")
         eng = create_engine(f"sqlite:///{TESTPATH}")
         with Session(eng) as sess:
             for cat in sess.scalars(Select(Category)):

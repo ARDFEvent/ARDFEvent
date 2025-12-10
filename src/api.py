@@ -19,6 +19,8 @@ BI_TEMPLATE = {
 
 BANDS = ["2m", "80m", "kombinované"]
 
+CONFIG_PATH = Path.home() / ".ardfevent" / "config.json"
+
 
 def get_basic_info(database: Engine):
     with Session(database) as sess:
@@ -68,18 +70,39 @@ def get_clubs():
         return json.load(cf)
 
 
+def get_config() -> dict:
+    if not CONFIG_PATH.exists():
+        return {}
+    try:
+        with open(CONFIG_PATH, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except json.JSONDecodeError:
+        return {}
+
+
+def get_config_value(key, default=None):
+    cfg = get_config()
+    return cfg.get(key, default)
+
+
+def set_config_value(key, value):
+    cfg = get_config()
+    cfg[key] = value
+    with open(CONFIG_PATH, "w", encoding="utf-8") as f:
+        json.dump(cfg, f, indent=2, ensure_ascii=False)
+    return cfg
+
+
 def renumber_runners(database: Engine):
-    sess = Session(database)
+    with Session(database) as sess:
+        runners = sess.scalars(Select(Runner)).all()
+        runners_dict = {}
 
-    runners = sess.scalars(Select(Runner)).all()
-    runners_dict = {}
+        for runner in runners:
+            if runner.name in runners_dict:
+                runners_dict[runner.name] += 1
+                runner.name += f" ({runners_dict[runner.name]})"
+            else:
+                runners_dict[runner.name] = 0
 
-    for runner in runners:
-        if runner.name in runners_dict:
-            runners_dict[runner.name] += 1
-            runner.name += f" ({runners_dict[runner.name]})"
-        else:
-            runners_dict[runner.name] = 0
-
-    sess.commit()
-    sess.close()
+        sess.commit()
