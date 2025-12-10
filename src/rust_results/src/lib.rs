@@ -237,7 +237,7 @@ mod rust_results {
                     order.push((control.name.clone(), punch.time, "OK".to_string()));
                     loccontrols.remove(index);
                 } else if let Some(control) = _allcontrols.iter().find(|control| control.code == punch.code) {
-                    order.push((control.name.clone(), punch.time, "AP".to_string()));
+                    order.push((control.name.clone() + "+", punch.time, "AP".to_string()));
                 }
 
                 if let Some(index) = mandcontrols.iter().position(|control| control.code == punch.code) {
