@@ -29,17 +29,12 @@ def export(db: Engine) -> str:
             api.BANDS.index(api.get_basic_info(db)["band"])
         ]
 
-        lim_int = int(api.get_basic_info(db)["limit"])
-        lim_hrs = lim_int // 60
-        lim_mins = lim_int % 60
-        limit = f"{lim_hrs:02}:{lim_mins:02}"
-
         cat_props.append(
             {
                 "category_name": name,
-                "category_control_points": controls,
                 "category_race_band": band,
-                "category_time_limit": limit,
+                "category_time_limit": int(api.get_basic_info(db)["limit"]),
+                "category_control_points": controls,
             }
         )
 
@@ -74,7 +69,7 @@ def export(db: Engine) -> str:
                 {
                     "competitor_category_name": category.name,
                     "place": person.place if person.place != 0 else person.status,
-                    "start_number": person.startno or None,
+                    "start_number": None,
                     "last_name": person.name.split(", ")[0],
                     "first_name": person.name.split(", ")[1],
                     "si_number": person.si,

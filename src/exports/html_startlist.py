@@ -1,13 +1,13 @@
 from datetime import datetime
 
 from jinja2 import Environment, select_autoescape, FileSystemLoader
-from results import format_delta
 from sqlalchemy import Select
 from sqlalchemy.orm import Session
 
 import api
 from exports import html_common
 from models import Category, Runner
+from results import format_delta
 
 
 def export(filename, db):
@@ -50,6 +50,7 @@ def generate(db):
                         if starttime
                         else "-"
                     ),
+                    "startno": person.startno or ""
                 }
             )
         if len(runners):
