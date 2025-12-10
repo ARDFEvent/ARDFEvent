@@ -7,3 +7,5 @@ build
 dist
 docs/docs_build/build
 .idea
+src/rust_results/target
+pyvenv.cfg

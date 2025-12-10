@@ -29,6 +29,9 @@ if __name__ == "__main__":
     if not rootdir.exists():
         rootdir.mkdir()
 
+    if not (rootdir / "plugins").exists():
+        (rootdir / "plugins").mkdir()
+
     try:
         splash.showMessage("Stahuji registraci...")
         app.processEvents()
