@@ -85,7 +85,7 @@ class ControlsWindow(QWidget):
                 Control(name="3", code=33, mandatory=False, spectator=False),
                 Control(name="4", code=34, mandatory=False, spectator=False),
                 Control(name="5", code=35, mandatory=False, spectator=False),
-                Control(name="M", code=99, mandatory=True, spectator=False),
+                Control(name="M", code=99, mandatory=False, spectator=False),
             ]
         )
         self._update_table()
@@ -103,7 +103,7 @@ class ControlsWindow(QWidget):
                 Control(name="R3", code=43, mandatory=False, spectator=False),
                 Control(name="R4", code=44, mandatory=False, spectator=False),
                 Control(name="R5", code=45, mandatory=False, spectator=False),
-                Control(name="M", code=99, mandatory=True, spectator=False),
+                Control(name="M", code=99, mandatory=False, spectator=False),
             ]
         )
         self._update_table()
@@ -121,8 +121,8 @@ class ControlsWindow(QWidget):
                 Control(name="R3", code=43, mandatory=False, spectator=False),
                 Control(name="R4", code=44, mandatory=False, spectator=False),
                 Control(name="R5", code=45, mandatory=False, spectator=False),
-                Control(name="S", code=46, mandatory=True, spectator=True),
-                Control(name="M", code=99, mandatory=True, spectator=False),
+                Control(name="S", code=46, mandatory=False, spectator=True),
+                Control(name="M", code=99, mandatory=False, spectator=False),
             ]
         )
         self._update_table()
