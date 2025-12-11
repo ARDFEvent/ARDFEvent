@@ -1,3 +1,5 @@
+import warnings
+
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QPixmap, QFontDatabase
 from PySide6.QtWidgets import QApplication, QSplashScreen
@@ -7,6 +9,8 @@ import pluginmanager
 from ui import resources_init
 
 if __name__ == "__main__":
+    warnings.filterwarnings("ignore")
+
     QApplication.setAttribute(Qt.AA_ShareOpenGLContexts)
 
     app = QApplication()
