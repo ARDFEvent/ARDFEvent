@@ -1,11 +1,15 @@
+import os
+import sys
+
 import warnings
 
 from PySide6.QtCore import Qt, QCoreApplication, QTranslator, QLocale
 from PySide6.QtGui import QPixmap, QFontDatabase
-from PySide6.QtWidgets import QApplication, QSplashScreen
+from PySide6.QtWidgets import QApplication, QSplashScreen, QWizard
 
 import api
 import pluginmanager
+
 # noinspection PyUnresolvedReferences
 from ui import resources_init
 
@@ -29,8 +33,12 @@ if __name__ == "__main__":
     app.processEvents()
 
     translator = QTranslator()
-    if translator.load(QLocale(LANGUAGES[api.get_config_value("lang", "cs")]), "ARDFEvent_", "",
-                       ":/i18n"):
+    if translator.load(
+        QLocale(LANGUAGES[api.get_config_value("lang", "cs")]),
+        "ARDFEvent_",
+        "",
+        ":/i18n",
+    ):
         app.installTranslator(translator)
 
     splash.showMessage(QCoreApplication.translate("Loading", "Vytvářím složku..."))
@@ -48,7 +56,9 @@ if __name__ == "__main__":
         (rootdir / "plugins").mkdir()
 
     try:
-        splash.showMessage(QCoreApplication.translate("Loading", "Stahuji registraci..."))
+        splash.showMessage(
+            QCoreApplication.translate("Loading", "Stahuji registraci...")
+        )
         app.processEvents()
 
         import registration
@@ -56,8 +66,13 @@ if __name__ == "__main__":
         registration.download()
     except:
         splash.showMessage(
-            QCoreApplication.translate("Loading", "Nejste připojeni k internetu - nebyla aktualizována registrace"),
-            Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft, "red")
+            QCoreApplication.translate(
+                "Loading",
+                "Nejste připojeni k internetu - nebyla aktualizována registrace",
+            ),
+            Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft,
+            "red",
+        )
         app.processEvents()
         time.sleep(1)
 
@@ -81,11 +96,17 @@ if __name__ == "__main__":
     win.pl = pl
     for status, plugin in pl.load():
         if status:
-            splash.showMessage(QCoreApplication.translate("Loading", "Načten %s") % plugin["name"])
+            splash.showMessage(
+                QCoreApplication.translate("Loading", "Načten %s") % plugin["name"]
+            )
             app.processEvents()
         else:
             splash.showMessage(
-                QCoreApplication.translate("Loading", "Plugin %s nenačten - nelze ověřit podpis.") % plugin["name"])
+                QCoreApplication.translate(
+                    "Loading", "Plugin %s nenačten - nelze ověřit podpis."
+                )
+                % plugin["name"]
+            )
             app.processEvents()
             time.sleep(1)
 
@@ -96,6 +117,34 @@ if __name__ == "__main__":
 
     splash.close()
     app.processEvents()
+
+    if not api.get_config_value("setup_completed", False):
+        from ui.setupwiz import SetupWizard
+
+        wiz = SetupWizard(api.get_config_value("setup_part", False))
+
+        if wiz.exec() == QWizard.Accepted:
+            api.set_config_value(
+                "setup_completed", api.get_config_value("setup_part", False)
+            )
+            api.set_config_value("setup_part", True)
+
+            executable = sys.executable
+            executable_filename = os.path.split(executable)[1]
+            if executable_filename.lower().startswith("python"):
+                python = executable
+                os.execv(
+                    python,
+                    [
+                        python,
+                    ]
+                    + sys.argv,
+                )
+
+            else:
+                os.execv(executable, sys.argv)
+
+        sys.exit(0)
 
     win.welcomewin.show()
 

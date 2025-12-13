@@ -145,42 +145,41 @@
 <context>
     <name>Loading</name>
     <message>
-        <location filename="../src/main.py" line="29"/>
+        <location filename="../src/main.py" line="44"/>
         <source>Vytvářím složku...</source>
         <translation>Creating folder...</translation>
     </message>
     <message>
-        <location filename="../src/main.py" line="44"/>
+        <location filename="../src/main.py" line="60"/>
         <source>Stahuji registraci...</source>
         <translation>Downloading registration...</translation>
     </message>
     <message>
-        <location filename="../src/main.py" line="52"/>
         <source>Nejste připojeni k internetu - nebyla aktualizována registrace</source>
-        <translation>No internet connection - the registration wasn&apos;t updated</translation>
+        <translation type="vanished">No internet connection - the registration wasn&apos;t updated</translation>
     </message>
     <message>
-        <location filename="../src/main.py" line="57"/>
+        <location filename="../src/main.py" line="79"/>
         <source>Načítám assety...</source>
         <translation>Loading assets...</translation>
     </message>
     <message>
-        <location filename="../src/main.py" line="66"/>
+        <location filename="../src/main.py" line="88"/>
         <source>Inicializuji UI...</source>
         <translation>Initializing UI...</translation>
     </message>
     <message>
-        <location filename="../src/main.py" line="77"/>
+        <location filename="../src/main.py" line="100"/>
         <source>Načten %s</source>
         <translation>Loaded %s</translation>
     </message>
     <message>
-        <location filename="../src/main.py" line="81"/>
+        <location filename="../src/main.py" line="105"/>
         <source>Plugin %s nenačten - nelze ověřit podpis.</source>
         <translation>Plugin %s not loaded - cannot verify signature.</translation>
     </message>
     <message>
-        <location filename="../src/main.py" line="85"/>
+        <location filename="../src/main.py" line="113"/>
         <source>Vítejte v ARDFEventu!</source>
         <translation>Welcome in ARDFEvent!</translation>
     </message>
@@ -579,6 +578,39 @@
         <location filename="../src/ui/runnersinforestwin.py" line="82"/>
         <source>%d osob v lese, %d dokončilo, %d ještě nestartovalo, limit posledního v lese: %s</source>
         <translation>%d people in forest, %d finished, % not started yet, last competitor limit: %s</translation>
+    </message>
+</context>
+<context>
+    <name>SetupWizard</name>
+    <message>
+        <location filename="../src/ui/setupwiz.py" line="64"/>
+        <source>Výchozí pluginy</source>
+        <translation>Default plugins</translation>
+    </message>
+    <message>
+        <location filename="../src/ui/setupwiz.py" line="68"/>
+        <source>Vyberte výchozí pluginy, které chcete nainstalovat.</source>
+        <translation>Select plugins you want to install.</translation>
+    </message>
+    <message>
+        <location filename="../src/ui/setupwiz.py" line="76"/>
+        <source>Etapový závod</source>
+        <translation>Multistage event</translation>
+    </message>
+    <message>
+        <location filename="../src/ui/setupwiz.py" line="83"/>
+        <source>Program na chvilku zamrzne.</source>
+        <translation>The app will freeze for a while.</translation>
+    </message>
+    <message>
+        <location filename="../src/ui/setupwiz.py" line="113"/>
+        <source>Dokončení</source>
+        <translation>End</translation>
+    </message>
+    <message>
+        <location filename="../src/ui/setupwiz.py" line="117"/>
+        <source>Nastavení je dokončeno.</source>
+        <translation>The setup is complete.</translation>
     </message>
 </context>
 <context>
