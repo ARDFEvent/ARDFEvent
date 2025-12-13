@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 
+from PySide6.QtCore import QCoreApplication
 from PySide6.QtWidgets import (
     QHBoxLayout,
     QHeaderView,
@@ -75,11 +76,21 @@ class RunnersInForestWindow(QWidget):
         ).all()
 
         self.gen_label.setText(
-            f"Generováno v {now.strftime("%H:%M:%S")}, "
+            QCoreApplication.translate("RunnersInForestWindow", "Generováno v %s, ") % {now.strftime("%H:%M:%S")}
             + (
-                "VŠICHNI V CÍLI!" if not in_forest else f"{len(in_forest)} osob v lese, {len(finished)} dokončilo, "
-                                                        f"{len(not_started_yet)} ještě nestartovalo, "
-                                                        f"limit posledního v lese: {(in_forest[-1].startlist_time + timedelta(minutes=int(api.get_basic_info(self.mw.db)["limit"]))).strftime("%H:%M:%S")}"
+                QCoreApplication.translate("RunnersInForestWindow",
+                                           "VŠICHNI V CÍLI!") if not in_forest else QCoreApplication.translate(
+                    "RunnersInForestWindow", "%d osob v lese, %d dokončilo, "
+                                             "%d ještě nestartovalo, "
+                                             "limit posledního v lese: %s") % (len(finished), len(in_forest),
+                                                                               len(not_started_yet), (
+                                                                                       in_forest[
+                                                                                           -1].startlist_time + timedelta(
+                                                                                   minutes=int(
+                                                                                       api.get_basic_info(
+                                                                                           self.mw.db)[
+                                                                                           "limit"]))).strftime(
+                        "%H:%M:%S"))
             )
         )
 
@@ -105,7 +116,10 @@ class RunnersInForestWindow(QWidget):
         self.runners_table.setSortingEnabled(True)
         self.runners_table.verticalHeader().hide()
         self.runners_table.setHorizontalHeaderLabels(
-            ["Jméno", "Index", "Kategorie", "Čas v lese"]
+            [QCoreApplication.translate("RunnersInForestWindow", "Jméno"),
+             QCoreApplication.translate("RunnersInForestWindow", "Index"),
+             QCoreApplication.translate("RunnersInForestWindow", "Kategorie"),
+             QCoreApplication.translate("RunnersInForestWindow", "Čas v lese")]
         )
 
         sess.close()

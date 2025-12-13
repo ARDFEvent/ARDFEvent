@@ -1,6 +1,6 @@
 from datetime import timedelta, datetime
 
-from PySide6.QtCore import QStringListModel, Qt
+from PySide6.QtCore import QStringListModel, Qt, QCoreApplication
 from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
@@ -34,11 +34,11 @@ class RunnerWindow(QWidget):
         leftlay = QVBoxLayout()
         mainlay.addLayout(leftlay)
 
-        new_btn = QPushButton("Nový")
+        new_btn = QPushButton(QCoreApplication.translate("RunnerWindow", "Nový"))
         new_btn.clicked.connect(self._new_runner)
         leftlay.addWidget(new_btn)
         self.search = QLineEdit()
-        self.search.setPlaceholderText("Hledat")
+        self.search.setPlaceholderText(QCoreApplication.translate("RunnerWindow", "Hledat"))
         self.search.textEdited.connect(self._update_runners_cats)
         leftlay.addWidget(self.search)
 
@@ -55,7 +55,7 @@ class RunnerWindow(QWidget):
         self.name_edit = QLineEdit()
         self.name_edit.textEdited.connect(self._save_runner)
 
-        details_lay.addRow("Jméno", self.name_edit)
+        details_lay.addRow(QCoreApplication.translate("RunnerWindow", "Jméno"), self.name_edit)
 
         self.name_completer = QCompleter([])
         self.name_completer.highlighted.connect(self._prefill_runner)
@@ -63,23 +63,23 @@ class RunnerWindow(QWidget):
         self.name_edit.setCompleter(self.name_completer)
 
         self.club_edit = QLineEdit()
-        details_lay.addRow("Klub", self.club_edit)
+        details_lay.addRow(QCoreApplication.translate("RunnerWindow", "Klub"), self.club_edit)
 
         self.SI_edit = QSpinBox()
         self.SI_edit.setMaximum(10_000_000)
-        details_lay.addRow("SI", self.SI_edit)
+        details_lay.addRow(QCoreApplication.translate("RunnerWindow", "SI"), self.SI_edit)
 
         self.reg_edit = QLineEdit()
-        details_lay.addRow("Reg. číslo", self.reg_edit)
+        details_lay.addRow(QCoreApplication.translate("RunnerWindow", "Reg. číslo"), self.reg_edit)
 
         self.category_edit = QComboBox()
-        details_lay.addRow("Kategorie", self.category_edit)
+        details_lay.addRow(QCoreApplication.translate("RunnerWindow", "Kategorie"), self.category_edit)
 
         self.startno_edit = QSpinBox()
-        details_lay.addRow("Startovní číslo", self.startno_edit)
+        details_lay.addRow(QCoreApplication.translate("RunnerWindow", "Startovní číslo"), self.startno_edit)
 
         self.starttime_lbl = QLabel()
-        details_lay.addRow("Startovní čas", self.starttime_lbl)
+        details_lay.addRow(QCoreApplication.translate("RunnerWindow", "Startovní čas"), self.starttime_lbl)
 
         self.dns_edit = QCheckBox()
         details_lay.addRow("DNS", self.dns_edit)
@@ -87,27 +87,27 @@ class RunnerWindow(QWidget):
         self.dsq_edit = QCheckBox()
         details_lay.addRow("DSQ", self.dsq_edit)
 
-        save_btn = QPushButton("Uložit")
+        save_btn = QPushButton(QCoreApplication.translate("RunnerWindow", "Uložit"))
         save_btn.clicked.connect(self._save_runner)
         details_lay.addWidget(save_btn)
 
-        print_btn = QPushButton("Vytisknout výčet")
+        print_btn = QPushButton(QCoreApplication.translate("RunnerWindow", "Vytisknout výčet"))
         print_btn.clicked.connect(self._btn_print_readout)
         details_lay.addWidget(print_btn)
 
-        snura_btn = QPushButton("Vytisknout výčet na šňůru")
+        snura_btn = QPushButton(QCoreApplication.translate("RunnerWindow", "Vytisknout výčet na šňůru"))
         snura_btn.clicked.connect(self._btn_print_snura)
         details_lay.addWidget(snura_btn)
 
-        send_btn = QPushButton("Odeslat online")
+        send_btn = QPushButton(QCoreApplication.translate("RunnerWindow", "Odeslat online"))
         send_btn.clicked.connect(self._send_online)
         details_lay.addWidget(send_btn)
 
-        st_btn = QPushButton("Změnit startovní čas")
+        st_btn = QPushButton(QCoreApplication.translate("RunnerWindow", "Změnit startovní čas"))
         st_btn.clicked.connect(self._set_starttime)
         details_lay.addWidget(st_btn)
 
-        delete_btn = QPushButton("Smazat")
+        delete_btn = QPushButton(QCoreApplication.translate("RunnerWindow", "Smazat"))
         delete_btn.clicked.connect(self._delete_runner)
         details_lay.addWidget(delete_btn)
 
@@ -122,8 +122,11 @@ class RunnerWindow(QWidget):
                     api.get_basic_info(self.mw.db)["date_tzero"]) + timedelta(minutes=
                                                                               QInputDialog.getDouble(
                                                                                   self,
-                                                                                  "Startovní čas",
-                                                                                  "Zadejte relativní startovní čas (min)",
+                                                                                  QCoreApplication.translate(
+                                                                                      "RunnerWindow", "Startovní čas"),
+                                                                                  QCoreApplication.translate(
+                                                                                      "RunnerWindow",
+                                                                                      "Zadejte relativní startovní čas (min)"),
                                                                                   minValue=-1440,
                                                                                   maxValue=1440,
                                                                                   step=0.1)[0])

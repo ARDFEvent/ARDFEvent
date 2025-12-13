@@ -1,4 +1,4 @@
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QCoreApplication
 from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
@@ -19,46 +19,50 @@ class ControlsWindow(QWidget):
         super().__init__()
 
         self.mw = mw
-        self.setWindowTitle("Kontroly")
 
         mainlay = QVBoxLayout()
         self.setLayout(mainlay)
 
-        mainlay.addWidget(QLabel("Přednastavené kontroly:"))
+        mainlay.addWidget(QLabel(QCoreApplication.translate("ControlsWindow", "Přednastavené kontroly:")))
 
         presetslay = QHBoxLayout()
         mainlay.addLayout(presetslay)
 
-        self.slowcontrols_preset = QPushButton("Pomalé kontroly (1-5 + M)")
+        self.slowcontrols_preset = QPushButton(
+            QCoreApplication.translate("ControlsWindow", "Pomalé kontroly (1-5 + M)"))
         self.slowcontrols_preset.clicked.connect(self._preset_slow)
         presetslay.addWidget(self.slowcontrols_preset)
 
-        self.allcontrols_preset = QPushButton("Všechny kontroly (1-5 + R1-R5 + M)")
+        self.allcontrols_preset = QPushButton(
+            QCoreApplication.translate("ControlsWindow", "Všechny kontroly (1-5 + R1-R5 + M)"))
         self.allcontrols_preset.clicked.connect(self._preset_all)
         presetslay.addWidget(self.allcontrols_preset)
 
-        self.sprint_preset = QPushButton("Sprint (1-5 + S + R1-R5 + M)")
+        self.sprint_preset = QPushButton(QCoreApplication.translate("ControlsWindow", "Sprint (1-5 + S + R1-R5 + M)"))
         self.sprint_preset.clicked.connect(self._preset_sprint)
         presetslay.addWidget(self.sprint_preset)
 
         operationslay = QHBoxLayout()
         mainlay.addLayout(operationslay)
 
-        self.add_btn = QPushButton("Přidat")
+        self.add_btn = QPushButton(QCoreApplication.translate("ControlsWindow", "Přidat"))
         self.add_btn.clicked.connect(self._new_control)
         operationslay.addWidget(self.add_btn)
 
-        self.save_btn = QPushButton("Uložit")
+        self.save_btn = QPushButton(QCoreApplication.translate("ControlsWindow", "Uložit"))
         self.save_btn.clicked.connect(self._save)
         operationslay.addWidget(self.save_btn)
 
-        self.delete_btn = QPushButton("Smazat")
+        self.delete_btn = QPushButton(QCoreApplication.translate("ControlsWindow", "Smazat"))
         self.delete_btn.clicked.connect(self._delete)
         operationslay.addWidget(self.delete_btn)
 
         self.table = QTableWidget()
         self.table.setColumnCount(4)
-        self.table.setHorizontalHeaderLabels(["Jméno", "SI kód", "Povinná", "Divácká"])
+        self.table.setHorizontalHeaderLabels([QCoreApplication.translate("ControlsWindow", "Jméno"),
+                                              QCoreApplication.translate("ControlsWindow", "SI kód"),
+                                              QCoreApplication.translate("ControlsWindow", "Povinná"),
+                                              QCoreApplication.translate("ControlsWindow", "Divácká")])
         self.table.itemClicked.connect(self._set_last)
 
         mainlay.addWidget(self.table, 1)

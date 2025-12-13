@@ -1,4 +1,4 @@
-from PySide6.QtCore import Qt
+from PySide6.QtCore import QCoreApplication
 from PySide6.QtWidgets import (
     QFormLayout,
     QHBoxLayout,
@@ -35,11 +35,11 @@ class CategoriesWindow(QWidget):
         buttonslay = QHBoxLayout()
         rightlay.addLayout(buttonslay)
 
-        new_btn = QPushButton("Nová kategorie")
+        new_btn = QPushButton(QCoreApplication.translate("CategoriesWindow", "Nová kategorie"))
         new_btn.clicked.connect(self._new_category)
         buttonslay.addWidget(new_btn)
 
-        delete_btn = QPushButton("Smazat kategorii")
+        delete_btn = QPushButton(QCoreApplication.translate("CategoriesWindow", "Smazat kategorii"))
         delete_btn.clicked.connect(self._delete_category)
         buttonslay.addWidget(delete_btn)
 
@@ -48,12 +48,12 @@ class CategoriesWindow(QWidget):
 
         self.name_edit = QLineEdit()
         self.name_edit.textEdited.connect(self._change)
-        detailslay.addRow("Jméno", self.name_edit)
+        detailslay.addRow(QCoreApplication.translate("CategoriesWindow", "Jméno"), self.name_edit)
 
         self.display_controls_edit = QLineEdit()
         self.display_controls_edit.textEdited.connect(self._change)
         detailslay.addRow(
-            "Před závodem zobrazené kontroly (startovka, ...)",
+            QCoreApplication.translate("CategoriesWindow", "Před závodem zobrazené kontroly (startovka, ...)"),
             self.display_controls_edit,
         )
 
@@ -111,7 +111,8 @@ class CategoriesWindow(QWidget):
 
     def _new_category(self):
         name, ok = QInputDialog.getText(
-            self, "Nová kategorie", "Zadejte jméno kategorie"
+            self, QCoreApplication.translate("CategoriesWindow", "Nová kategorie"),
+            QCoreApplication.translate("CategoriesWindow", "Zadejte jméno kategorie")
         )
 
         if not ok:

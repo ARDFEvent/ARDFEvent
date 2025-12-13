@@ -1,7 +1,7 @@
 import random
 from datetime import timedelta, datetime
 
-from PySide6.QtCore import Qt, QSize
+from PySide6.QtCore import Qt, QSize, QCoreApplication
 from PySide6.QtWidgets import (
     QDoubleSpinBox,
     QFormLayout,
@@ -26,13 +26,13 @@ class StartListDrawSetupWindow(QWidget):
 
         self.mainlay = QFormLayout()
         self.setLayout(self.mainlay)
-        self.setWindowTitle("Nastavení losování startovní listiny")
+        self.setWindowTitle(QCoreApplication.translate("StartListDrawWindow", "Nastavení losování startovní listiny"))
 
-        self.draw_btn = QPushButton("Otevřít losování")
+        self.draw_btn = QPushButton(QCoreApplication.translate("StartListDrawWindow", "Otevřít losování"))
         self.draw_btn.clicked.connect(self._open_draw)
         self.mainlay.addRow(self.draw_btn)
 
-        self.mainlay.addRow("", QLabel("Losovací řádek"))
+        self.mainlay.addRow("", QLabel(QCoreApplication.translate("StartListDrawWindow", "Losovací řádek")))
 
         self.edits = {}
 
@@ -82,13 +82,14 @@ class StartlistDrawWindow(QWidget):
 
         self.mainlay = QFormLayout()
         self.parlay.addLayout(self.mainlay)
-        self.setWindowTitle("Startovní listina")
+        self.setWindowTitle(QCoreApplication.translate("StartListDrawWindow", "Startovní listina"))
 
         self.base_interval_edit = QDoubleSpinBox()
         self.base_interval_edit.setSingleStep(0.5)
-        self.mainlay.addRow("Startovní interval", self.base_interval_edit)
+        self.mainlay.addRow(QCoreApplication.translate("StartListDrawWindow", "Startovní interval"),
+                            self.base_interval_edit)
 
-        self.draw_btn = QPushButton("Losovat!")
+        self.draw_btn = QPushButton(QCoreApplication.translate("StartListDrawWindow", "Losovat!"))
         self.draw_btn.clicked.connect(self._draw)
         self.mainlay.addRow(self.draw_btn)
 
@@ -108,7 +109,7 @@ class StartlistDrawWindow(QWidget):
 
         for i in range(lines):
             line = QListWidget()
-            self.mainlay.addRow(f"Los. řádek {i + 1}", line)
+            self.mainlay.addRow(QCoreApplication.translate("StartListDrawWindow", "Los. řádek %d" % (i + 1)), line)
 
             line.setFlow(QListWidget.Flow.LeftToRight)
 

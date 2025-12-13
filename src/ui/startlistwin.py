@@ -1,3 +1,4 @@
+from PySide6.QtCore import QCoreApplication
 from PySide6.QtWidgets import (
     QFileDialog,
     QHBoxLayout,
@@ -34,21 +35,22 @@ class StartlistWindow(QWidget):
         lay.addLayout(btn_lay)
 
         export_menu = QMenu(self)
-        export_menu.addAction("HTML po kategoriích", self._export_html)
-        export_menu.addAction("HTML po minutách", self._export_html_minutes)
-        export_menu.addAction("CSV pro ROBis", self._export_robis_csv)
-        export_menu.addAction("JSON pro ROBis", self._export_json)
-        export_menu.addAction("IOF XML 3.0", self._export_iof_xml)
+        export_menu.addAction(QCoreApplication.translate("StartListWindow", "HTML po kategoriích"), self._export_html)
+        export_menu.addAction(QCoreApplication.translate("StartListWindow", "HTML po minutách"),
+                              self._export_html_minutes)
+        export_menu.addAction(QCoreApplication.translate("StartListWindow", "CSV pro ROBis"), self._export_robis_csv)
+        export_menu.addAction(QCoreApplication.translate("StartListWindow", "JSON pro ROBis"), self._export_json)
+        export_menu.addAction(QCoreApplication.translate("StartListWindow", "IOF XML 3.0"), self._export_iof_xml)
 
-        export_btn = QPushButton("Exportovat")
+        export_btn = QPushButton(QCoreApplication.translate("StartListWindow", "Exportovat"))
         export_btn.setMenu(export_menu)
         btn_lay.addWidget(export_btn)
 
-        draw_win_btn = QPushButton("Losovat startovku")
+        draw_win_btn = QPushButton(QCoreApplication.translate("StartListWindow", "Losovat startovku"))
         draw_win_btn.clicked.connect(self.mw.startlistdraw_win.setup_win.show)
         btn_lay.addWidget(draw_win_btn)
 
-        startno_win_btn = QPushButton("Startovní čísla")
+        startno_win_btn = QPushButton(QCoreApplication.translate("StartListWindow", "Startovní čísla"))
         startno_win_btn.clicked.connect(self.mw.startno_win.show)
         btn_lay.addWidget(startno_win_btn)
 
@@ -67,7 +69,7 @@ class StartlistWindow(QWidget):
     def _export_json(self):
         fn = QFileDialog.getSaveFileName(
             self,
-            "Export startovky do ROBis JSON",
+            QCoreApplication.translate("StartListWindow", "Export startovky do ROBis JSON"),
             filter=("ROBis JSON (*.json)"),
         )[0]
 
@@ -81,7 +83,7 @@ class StartlistWindow(QWidget):
     def _export_robis_csv(self):
         fn = QFileDialog.getSaveFileName(
             self,
-            "Export startovky do CSV pro ROBis",
+            QCoreApplication.translate("StartListWindow", "Export startovky do CSV pro ROBis"),
             filter="ROBis CSV (*.csv)",
         )[0]
 
@@ -94,7 +96,7 @@ class StartlistWindow(QWidget):
     def _export_iof_xml(self):
         fn = QFileDialog.getSaveFileName(
             self,
-            "Export startovky do IOF XML 3.0",
+            QCoreApplication.translate("StartListWindow", "Export startovky do IOF XML 3.0"),
             filter="IOF XML 3.0 (*.xml)",
         )[0]
 
@@ -114,7 +116,11 @@ class StartlistWindow(QWidget):
             self.startlist_table.clear()
             self.startlist_table.setColumnCount(5)
             self.startlist_table.setHorizontalHeaderLabels(
-                ["Čas startu", "Jméno", "Kategorie", "Index", "SI"]
+                [QCoreApplication.translate("StartListWindow", "Čas startu"),
+                 QCoreApplication.translate("StartListWindow", "Jméno"),
+                 QCoreApplication.translate("StartListWindow", "Kategorie"),
+                 QCoreApplication.translate("StartListWindow", "Index"),
+                 QCoreApplication.translate("StartListWindow", "SI")]
             )
             self.startlist_table.setRowCount(1000)
 

@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from PySide6.QtCore import QCoreApplication
 from PySide6.QtWidgets import (
     QComboBox,
     QDateTimeEdit,
@@ -23,22 +24,22 @@ class BasicInfoWindow(QWidget):
         self.setLayout(lay)
 
         self.name_edit = QLineEdit()
-        lay.addRow("Jméno", self.name_edit)
+        lay.addRow(QCoreApplication.translate("BasicInfoWindow", "Jméno"), self.name_edit)
 
         self.date_edit = QDateTimeEdit()
         self.date_edit.setDisplayFormat("dd. MM. yyyy HH:mm")
-        lay.addRow("Datum a čas", self.date_edit)
+        lay.addRow(QCoreApplication.translate("BasicInfoWindow", "Datum a čas"), self.date_edit)
 
         self.org_edit = QLineEdit()
-        lay.addRow("Pořadatel", self.org_edit)
+        lay.addRow(QCoreApplication.translate("BasicInfoWindow", "Pořadatel"), self.org_edit)
 
         self.limit_edit = QSpinBox()
         self.limit_edit.setRange(0, 10000)
-        lay.addRow("Limit", self.limit_edit)
+        lay.addRow(QCoreApplication.translate("BasicInfoWindow", "Limit"), self.limit_edit)
 
         self.band_select = QComboBox()
         self.band_select.addItems(api.BANDS)
-        lay.addRow("Pásmo", self.band_select)
+        lay.addRow(QCoreApplication.translate("BasicInfoWindow", "Pásmo"), self.band_select)
 
         self.ok_btn = QPushButton("OK")
         self.ok_btn.clicked.connect(self._on_ok)

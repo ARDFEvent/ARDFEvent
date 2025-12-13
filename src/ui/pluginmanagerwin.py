@@ -2,6 +2,7 @@ import glob
 import json
 from pathlib import Path
 
+from PySide6.QtCore import QCoreApplication
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QInputDialog, QTableWidget, QTableWidgetItem, \
     QAbstractItemView, QHeaderView, QLabel
 from dulwich import porcelain
@@ -13,20 +14,21 @@ class PluginManagerWindow(QWidget):
 
         self.mw = mw
 
-        self.setWindowTitle("Správce pluginů")
+        self.setWindowTitle(QCoreApplication.translate("PluginManagerWindow", "Správce pluginů"))
 
         lay = QVBoxLayout()
         self.setLayout(lay)
 
-        installbtn = QPushButton("Nainstalovat plugin")
+        installbtn = QPushButton(QCoreApplication.translate("PluginManagerWindow", "Nainstalovat plugin"))
         installbtn.clicked.connect(self._install_plugin)
         lay.addWidget(installbtn)
 
-        updatebtn = QPushButton("Aktualizovat všechny pluginy")
+        updatebtn = QPushButton(QCoreApplication.translate("PluginManagerWindow", "Aktualizovat všechny pluginy"))
         updatebtn.clicked.connect(self._update)
         lay.addWidget(updatebtn)
 
-        lay.addWidget(QLabel(f"Cesta do složky s pluginy: {(Path.home() / ".ardfevent" / "plugins").absolute()}"))
+        lay.addWidget(QLabel(QCoreApplication.translate("PluginManagerWindow", "Cesta do složky s pluginy: %s") % str(
+            (Path.home() / ".ardfevent" / "plugins").absolute())))
 
         self.table = QTableWidget()
         lay.addWidget(self.table)
@@ -40,7 +42,11 @@ class PluginManagerWindow(QWidget):
         self.table.setRowCount(len(plugins))
         self.table.setColumnCount(5)
         self.table.setHorizontalHeaderLabels(
-            ["Název", "Verze", "Popis", "Autor", "Složka"]
+            [QCoreApplication.translate("PluginManagerWindow", "Název"),
+             QCoreApplication.translate("PluginManagerWindow", "Verze"),
+             QCoreApplication.translate("PluginManagerWindow", "Popis"),
+             QCoreApplication.translate("PluginManagerWindow", "Autor"),
+             QCoreApplication.translate("PluginManagerWindow", "Složka")]
         )
         self.table.verticalHeader().hide()
         for i, pluginp in enumerate(plugins):
@@ -58,7 +64,8 @@ class PluginManagerWindow(QWidget):
             porcelain.pull(porcelain.Repo(Path(pluginp).parent))
 
     def _install_plugin(self):
-        url, ok = QInputDialog.getText(self, "Instalace pluginu", "Zadejte URL pluginu:")
+        url, ok = QInputDialog.getText(self, QCoreApplication.translate("PluginManagerWindow", "Instalace pluginu"),
+                                       QCoreApplication.translate("PluginManagerWindow", "Zadejte URL pluginu:"))
         if ok:
             porcelain.clone(url, Path.home() / ".ardfevent" / "plugins" / url.split("/")[-1].replace(".git", ""))
             self.mw.pl.load_plugin(

@@ -1,12 +1,18 @@
 import warnings
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QCoreApplication, QTranslator, QLocale
 from PySide6.QtGui import QPixmap, QFontDatabase
 from PySide6.QtWidgets import QApplication, QSplashScreen
 
+import api
 import pluginmanager
 # noinspection PyUnresolvedReferences
 from ui import resources_init
+
+LANGUAGES = {
+    "en": QLocale.Language.English,
+    "cs": QLocale.Language.Czech,
+}
 
 if __name__ == "__main__":
     warnings.filterwarnings("ignore")
@@ -22,7 +28,12 @@ if __name__ == "__main__":
     splash.raise_()
     app.processEvents()
 
-    splash.showMessage("Vytvářím složku...")
+    translator = QTranslator()
+    if translator.load(QLocale(LANGUAGES[api.get_config_value("lang", "cs")]), "ARDFEvent_", "",
+                       ":/i18n"):
+        app.installTranslator(translator)
+
+    splash.showMessage(QCoreApplication.translate("Loading", "Vytvářím složku..."))
     app.processEvents()
 
     from pathlib import Path
@@ -37,19 +48,20 @@ if __name__ == "__main__":
         (rootdir / "plugins").mkdir()
 
     try:
-        splash.showMessage("Stahuji registraci...")
+        splash.showMessage(QCoreApplication.translate("Loading", "Stahuji registraci..."))
         app.processEvents()
 
         import registration
 
         registration.download()
     except:
-        splash.showMessage("Nejste připojeni k internetu - nebyla aktualizována registrace",
-                           Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft, "red")
+        splash.showMessage(
+            QCoreApplication.translate("Loading", "Nejste připojeni k internetu - nebyla aktualizována registrace"),
+            Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft, "red")
         app.processEvents()
         time.sleep(1)
 
-    splash.showMessage("Načítám assety...")
+    splash.showMessage(QCoreApplication.translate("Loading", "Načítám assety..."))
     app.processEvents()
 
     # noinspection PyUnresolvedReferences
@@ -58,7 +70,7 @@ if __name__ == "__main__":
     QFontDatabase.addApplicationFont(":/font/SpaceMono.ttf")
     app.setFont("Space Mono")
 
-    splash.showMessage("Inicializuji UI...")
+    splash.showMessage(QCoreApplication.translate("Loading", "Inicializuji UI..."))
     app.processEvents()
 
     import ui.mainwin as mainwin
@@ -69,14 +81,15 @@ if __name__ == "__main__":
     win.pl = pl
     for status, plugin in pl.load():
         if status:
-            splash.showMessage(f"Načten {plugin["name"]}")
+            splash.showMessage(QCoreApplication.translate("Loading", "Načten %s") % plugin["name"])
             app.processEvents()
         else:
-            splash.showMessage(f"Plugin {plugin["name"]} nenačten - nelze ověřit podpis.")
+            splash.showMessage(
+                QCoreApplication.translate("Loading", "Plugin %s nenačten - nelze ověřit podpis.") % plugin["name"])
             app.processEvents()
             time.sleep(1)
 
-    splash.showMessage("Vítejte v ARDFEventu!")
+    splash.showMessage(QCoreApplication.translate("Loading", "Vítejte v ARDFEventu!"))
     app.processEvents()
 
     time.sleep(1)

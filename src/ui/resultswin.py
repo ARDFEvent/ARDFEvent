@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-from PySide6.QtCore import QThread
+from PySide6.QtCore import QThread, QCoreApplication
 from PySide6.QtWidgets import (
     QFileDialog,
     QHBoxLayout,
@@ -65,18 +65,18 @@ class ResultsWindow(QWidget):
         export_menu.addAction("ARDF JSON", self._export_json)
         export_menu.addAction("CSV", self._export_csv)
 
-        export_btn = QPushButton("Exportovat")
+        export_btn = QPushButton(QCoreApplication.translate("ResultsWindow", "Exportovat"))
         export_btn.setMenu(export_menu)
         btn_lay.addWidget(export_btn)
 
-        self.webserverbtn = QPushButton("Spustit webový server")
+        self.webserverbtn = QPushButton(QCoreApplication.translate("ResultsWindow", "Spustit webový server"))
         self.webserverbtn.clicked.connect(self._toggle_webserver)
         btn_lay.addWidget(self.webserverbtn)
 
         self.state_label = QLabel()
         btn_lay.addWidget(self.state_label)
 
-        self.annbtn = QPushButton("Změna hlášení")
+        self.annbtn = QPushButton(QCoreApplication.translate("ResultsWindow", "Změna hlášení"))
         self.annbtn.clicked.connect(self._set_webserver_announcement)
         btn_lay.addWidget(self.annbtn)
 
@@ -89,13 +89,17 @@ class ResultsWindow(QWidget):
         lay.addWidget(self.results_table)
 
     def _set_webserver_announcement(self):
-        ann, ok = QInputDialog.getText(self, "Změna hlášení", "Zadejte hlášení")
+        ann, ok = QInputDialog.getText(self, QCoreApplication.translate("ResultsWindow", "Změna hlášení"),
+                                       QCoreApplication.translate("ResultsWindow", "Zadejte hlášení"))
 
         if self.proc and ok:
             self.proc.set_ann(ann)
 
     def _toggle_webserver(self):
-        host, ok = QInputDialog.getText(self, "Konfigurace webového serveru", "Zadejte IP adresu, na které má běžet WS")
+        host, ok = QInputDialog.getText(self,
+                                        QCoreApplication.translate("ResultsWindow", "Konfigurace webového serveru"),
+                                        QCoreApplication.translate("ResultsWindow",
+                                                                   "Zadejte IP adresu, na které má běžet WS"))
         if ok and not self.proc:
             self.webserverbtn.setDisabled(True)
             self.proc = WebServerThread(self.mw.db, host)
@@ -104,11 +108,11 @@ class ResultsWindow(QWidget):
             self.proc.start()
 
     def _proc_running(self):
-        self.state_label.setText("Stav: Aktivní")
+        self.state_label.setText(QCoreApplication.translate("ResultsWindow", "Stav: Aktivní"))
         self.state_label.setStyleSheet("color: green;")
 
     def _proc_stopped(self):
-        self.state_label.setText("Stav: Neaktivní")
+        self.state_label.setText(QCoreApplication.translate("ResultsWindow", "Stav: Neaktivní"))
         self.state_label.setStyleSheet("color: red;")
 
     def _export_html_splits(self):
@@ -120,7 +124,7 @@ class ResultsWindow(QWidget):
     def _export_csv(self):
         fn = QFileDialog.getSaveFileName(
             self,
-            "Export výsledků do CSV",
+            QCoreApplication.translate("ResultsWindow", "Export výsledků do CSV"),
             filter=("CSV (*.csv)"),
         )[0]
 
@@ -133,7 +137,7 @@ class ResultsWindow(QWidget):
     def _export_iof_xml(self):
         fn = QFileDialog.getSaveFileName(
             self,
-            "Export výsledků do IOF XML 3.0",
+            QCoreApplication.translate("ResultsWindow", "Export výsledků do IOF XML 3.0"),
             filter=("IOF XML 3.0 (*.xml)"),
         )[0]
 
@@ -146,7 +150,7 @@ class ResultsWindow(QWidget):
     def _export_json(self):
         fn = QFileDialog.getSaveFileName(
             self,
-            "Export výsledků do ARDF JSON",
+            QCoreApplication.translate("ResultsWindow", "Export výsledků do ARDF JSON"),
             filter=("ARDF JSON (*.json)"),
         )[0]
 

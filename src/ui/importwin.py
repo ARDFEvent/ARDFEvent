@@ -1,5 +1,6 @@
 import csv
 
+from PySide6.QtCore import QCoreApplication
 from PySide6.QtWidgets import (
     QFileDialog,
     QLabel,
@@ -22,16 +23,17 @@ class ImportWindow(QWidget):
         lay = QVBoxLayout()
         self.setLayout(lay)
 
-        file_btn = QPushButton("Vyberte soubor (.csv)")
+        file_btn = QPushButton(QCoreApplication.translate("ImportWindow", "Vyberte soubor (.csv)"))
         file_btn.clicked.connect(self._select_file)
         lay.addWidget(file_btn)
 
         lay.addWidget(
             QLabel(
-                'Soubor musí obsahovat hlavičku "Jméno;Příjmení;Registrace;SI;Kategorie", podle toho se musí řídit další sloupce.'
+                QCoreApplication.translate("ImportWindow",
+                                           'Soubor musí obsahovat hlavičku "Jméno;Příjmení;Registrace;SI;Kategorie", podle toho se musí řídit další sloupce.')
             )
         )
-        lay.addWidget(QLabel("Pro import z ROBis využijte okno ROBis!"))
+        lay.addWidget(QLabel(QCoreApplication.translate("ImportWindow", "Pro import z ROBis využijte okno ROBis!")))
 
         self.log = QTextBrowser()
         lay.addWidget(self.log)
@@ -45,7 +47,9 @@ class ImportWindow(QWidget):
         with open(file[0], "r") as f:
             reader = csv.reader(f, delimiter=";")
             data = list(reader)[1:]
-            self.log.append(f"Načten soubor {file[0]}. Počet závodníků: {len(data)}.")
+            self.log.append(
+                QCoreApplication.translate("ImportWindow", "Načten soubor %s. Počet závodníků: %d.") % (file[0],
+                                                                                                        len(data)))
 
         clubs = api.get_clubs()
 
@@ -66,19 +70,26 @@ class ImportWindow(QWidget):
             match code:
                 case 0:
                     self.log.append(
-                        f"OK: Závodník {runner.name} byl úspěšně importován."
+                        QCoreApplication.translate("ImportWindow",
+                                                   "OK: Závodník %s byl úspěšně importován.") % runner.name
                     )
                 case 1:
                     self.log.append(
-                        f"/!\\ WAR: Závodník {runner.name} s registračním číslem {runner.reg} již existuje! Přepisuje se."
+                        QCoreApplication.translate("ImportWindow",
+                                                   "/!\\ WAR: Závodník %s s registračním číslem %s již existuje! Přepisuje se.") % (
+                            runner.name, runner.reg)
                     )
                 case 2:
                     self.log.append(
-                        f"/!\\ WAR: Pro závodníka {runner.name} nebyla nalezena kategorie {runner.category_name}! Kategorie vytvořena."
+                        QCoreApplication.translate("ImportWindow",
+                                                   "/!\\ WAR: Pro závodníka %s nebyla nalezena kategorie %s! Kategorie vytvořena.") % (
+                            runner.name, runner.category_name)
                     )
                 case 3:
                     self.log.append(
-                        f"/!\\ WAR: Závodník {runner.name} nemá platný klub {runner.reg[:3]}. Přesto se importuje."
+                        QCoreApplication.translate("ImportWindow",
+                                                   "/!\\ WAR: Závodník %s nemá platný klub %s. Přesto se importuje.") % (
+                            runner.name, runner.reg[:3])
                     )
 
     def _show(self):

@@ -1,3 +1,4 @@
+from PySide6.QtCore import QCoreApplication
 from PySide6.QtWidgets import (
     QFileDialog,
     QHBoxLayout,
@@ -31,7 +32,7 @@ class OCheckListWindow(QWidget):
         btn_lay = QHBoxLayout()
         lay.addLayout(btn_lay)
 
-        import_btn = QPushButton("Importovat start-status.yaml")
+        import_btn = QPushButton(QCoreApplication.translate("OCheckListWin", "Importovat start-status.yaml"))
         import_btn.clicked.connect(self._import)
         btn_lay.addWidget(import_btn)
 
@@ -46,7 +47,7 @@ class OCheckListWindow(QWidget):
     def _import(self):
         fn = QFileDialog.getOpenFileName(
             self,
-            "Importovat z OCheckList",
+            QCoreApplication.translate("OCheckListWin", "Importovat z OCheckList"),
             filter=("OCheckList YAML (*.yaml)"),
         )[0]
 

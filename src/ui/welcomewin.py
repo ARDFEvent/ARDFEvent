@@ -2,7 +2,7 @@ from datetime import datetime
 from pathlib import Path
 
 import sqlalchemy
-from PySide6.QtCore import QSize, Qt
+from PySide6.QtCore import QSize, Qt, QCoreApplication
 from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import (
     QHBoxLayout,
@@ -45,11 +45,11 @@ class WelcomeWindow(QWidget):
 
         lay.addLayout(logolay)
 
-        new_btn = QPushButton("Nový závod")
+        new_btn = QPushButton(QCoreApplication.translate("WelcomeWindow", "Nový závod"))
         new_btn.clicked.connect(self._new_race)
         lay.addWidget(new_btn)
 
-        del_btn = QPushButton("Smazat závod")
+        del_btn = QPushButton(QCoreApplication.translate("WelcomeWindow", "Smazat závod"))
         del_btn.clicked.connect(self._delete)
         lay.addWidget(del_btn)
 
@@ -57,9 +57,10 @@ class WelcomeWindow(QWidget):
 
         self.pluginmanagerwin = PluginManagerWindow(self.mw)
 
-        self.helpers_menu.addAction("Správce pluginů", self.pluginmanagerwin.show)
+        self.helpers_menu.addAction(
+            QCoreApplication.translate("WelcomeWindow", "Správce pluginů"), self.pluginmanagerwin.show)
 
-        helpers_btn = QPushButton("Nástroje")
+        helpers_btn = QPushButton(QCoreApplication.translate("WelcomeWindow", "Nástroje"))
         helpers_btn.setMenu(self.helpers_menu)
         lay.addWidget(helpers_btn)
 
@@ -88,7 +89,8 @@ class WelcomeWindow(QWidget):
         self.setMinimumSize(self.races_list.sizeHintForColumn(0) + 50, 300)
 
     def _new_race(self):
-        title, ok = QInputDialog.getText(self, "Nový závod", "Zadejte ID závodu")
+        title, ok = QInputDialog.getText(self, QCoreApplication.translate("WelcomeWindow", "Nový závod"),
+                                         QCoreApplication.translate("WelcomeWindow", "Zadejte ID závodu"))
         if ok and title:
             file = Path.home() / ".ardfevent" / f"{title}.sqlite"
             if not file.exists():
@@ -118,8 +120,8 @@ class WelcomeWindow(QWidget):
         if (
                 QMessageBox.critical(
                     self,
-                    "Smazat závod",
-                    f"Opravdu chcete smazat závod {item.text()}?",
+                    QCoreApplication.translate("WelcomeWindow", "Smazat závod"),
+                    QCoreApplication.translate("WelcomeWindow", "Opravdu chcete smazat závod %s?") % item.text(),
                     QMessageBox.Yes | QMessageBox.No,
                 )
                 == QMessageBox.Yes

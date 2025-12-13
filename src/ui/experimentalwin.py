@@ -1,3 +1,4 @@
+from PySide6.QtCore import QCoreApplication
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QPushButton, )
 from sqlalchemy import Select
@@ -15,7 +16,7 @@ class ExperimentalWindow(QWidget):
         lay = QVBoxLayout()
         self.setLayout(lay)
 
-        punches_btn = QPushButton("Opravit ražení")
+        punches_btn = QPushButton(QCoreApplication.translate("ExperimentalWindow", "Opravit ražení"))
         punches_btn.clicked.connect(self._fix_punches)
         lay.addWidget(punches_btn)
 

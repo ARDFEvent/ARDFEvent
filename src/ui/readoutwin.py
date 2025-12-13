@@ -1,7 +1,7 @@
 import time
 from datetime import datetime, timedelta
 
-from PySide6.QtCore import QThread, Signal
+from PySide6.QtCore import QThread, Signal, QCoreApplication
 from PySide6.QtCore import QUrl
 from PySide6.QtGui import QCloseEvent, Qt
 from PySide6.QtMultimedia import QSoundEffect
@@ -90,21 +90,21 @@ class ReadoutWindow(QWidget):
         portslay = QFormLayout()
         lay.addLayout(portslay)
 
-        self.state_label = QLabel("Stav: Neaktivní")
+        self.state_label = QLabel(QCoreApplication.translate("ReadoutWindow", "Stav: Neaktivní"))
         lay.addWidget(self.state_label)
         self.state_label.setStyleSheet("color: red;")
 
         self.siport_edit = QComboBox()
-        portslay.addRow("Port SI readeru", self.siport_edit)
+        portslay.addRow(QCoreApplication.translate("ReadoutWindow", "Port SI readeru"), self.siport_edit)
 
-        printerconfigure_btn = QPushButton("Konfigurovat tiskárnu")
+        printerconfigure_btn = QPushButton(QCoreApplication.translate("ReadoutWindow", "Konfigurovat tiskárnu"))
         printerconfigure_btn.clicked.connect(self.printer_win.exec)
         portslay.addWidget(printerconfigure_btn)
 
         self.double_print_chk = QCheckBox()
-        portslay.addRow("Dvojtisk", self.double_print_chk)
+        portslay.addRow(QCoreApplication.translate("ReadoutWindow", "Dvojtisk"), self.double_print_chk)
 
-        startreadout_btn = QPushButton("Spustit/vypnout")
+        startreadout_btn = QPushButton(QCoreApplication.translate("ReadoutWindow", "Spustit/vypnout"))
         startreadout_btn.clicked.connect(self._toggle_readout)
         lay.addWidget(startreadout_btn)
 
@@ -112,8 +112,9 @@ class ReadoutWindow(QWidget):
         lay.addWidget(self.log)
 
     def _show_si_error(self):
-        self.state_win.set_error("CHYBA SI")
-        QMessageBox.critical(self, "Chyba", "Zkuste to znovu")
+        self.state_win.set_error(QCoreApplication.translate("ReadoutWindow", "CHYBA SI"))
+        QMessageBox.critical(self, QCoreApplication.translate("ReadoutWindow", "Chyba"),
+                             QCoreApplication.translate("ReadoutWindow", "Zkuste to znovu"))
         self.state_win.set_error(None)
 
     def _toggle_readout(self):
@@ -135,14 +136,15 @@ class ReadoutWindow(QWidget):
             self.state_win.set_ports(self.siport_edit.currentText())
 
     def _proc_running(self):
-        self.state_label.setText("Stav: Aktivní")
+        self.state_label.setText(QCoreApplication.translate("ReadoutWindow", "Stav: Aktivní"))
         self.state_label.setStyleSheet("color: green;")
 
     def _proc_stopped(self, msg=None):
-        self.state_label.setText("Stav: Neaktivní")
+        self.state_label.setText(QCoreApplication.translate("ReadoutWindow", "Stav: Neaktivní"))
         self.state_label.setStyleSheet("color: red;")
         self.log.setText(
-            self.log.toPlainText() + msg + "\n" if msg else "Čtení ukončeno.\n"
+            self.log.toPlainText() + msg + "\n" if msg else QCoreApplication.translate("ReadoutWindow",
+                                                                                       "Čtení ukončeno.\n")
         )
         self.state_win.close()
 
@@ -153,28 +155,28 @@ class ReadoutWindow(QWidget):
         si_no = data["card_number"]
 
         self._append_log("---------------------------------")
-        self._append_log(f"Byl vyčten čip {si_no}.")
+        self._append_log(QCoreApplication.translate("ReadoutWindow", "Byl vyčten čip %d.") % si_no)
 
         with Session(self.mw.db) as sess:
             runners = sess.scalars(Select(Runner).where(Runner.si == si_no)).all()
 
             if len(sess.scalars(Select(Punch).where(Punch.si == si_no)).all()) != 0:
-                self.state_win.set_error("JIŽ VYČTENÝ ČIP")
+                self.state_win.set_error(QCoreApplication.translate("ReadoutWindow", "JIŽ VYČTENÝ ČIP"))
                 if (
                         QMessageBox.warning(
                             self,
-                            "Chyba",
-                            f"Čip {si_no} byl již vyčten. Přepsat?",
+                            QCoreApplication.translate("ReadoutWindow", "Chyba"),
+                            QCoreApplication.translate("ReadoutWindow", "Čip %d byl již vyčten. Přepsat?") % si_no,
                             QMessageBox.StandardButton.Yes,
                             QMessageBox.StandardButton.No,
                         )
                         == QMessageBox.StandardButton.Yes
                 ):
-                    self._append_log(f"Přepsán předchozí zápis.")
+                    self._append_log(QCoreApplication.translate("ReadoutWindow", "Přepsán předchozí zápis."))
                     sess.execute(Delete(Punch).where(Punch.si == si_no))
                     self.state_win.set_error(None)
                 else:
-                    self._append_log(f"Zrušeno vyčtení.")
+                    self._append_log(QCoreApplication.translate("ReadoutWindow", "Zrušeno vyčtení."))
                     self.state_win.set_error(None)
                     return
 
@@ -188,13 +190,14 @@ class ReadoutWindow(QWidget):
                 sess.add(Punch(si=si_no, code=1001, time=data["finish"].replace(microsecond=0)))
 
             if len(runners) == 0:
-                self.state_win.set_error("NENALEZEN ČIP")
+                self.state_win.set_error(QCoreApplication.translate("ReadoutWindow", "NENALEZEN ČIP"))
                 all_runners = map(lambda x: x.name if not x.startno else f"{x.startno}, {x.name}",
                                   sess.scalars(Select(Runner)).all())
 
                 inpd = QInputDialog()
-                inpd.setWindowTitle("Nepřiřazený čip")
-                inpd.setLabelText("Čip není přiřazen. Zadejte jméno nebo st. číslo.")
+                inpd.setWindowTitle(QCoreApplication.translate("ReadoutWindow", "Nepřiřazený čip"))
+                inpd.setLabelText(
+                    QCoreApplication.translate("ReadoutWindow", "Čip není přiřazen. Zadejte jméno nebo st. číslo."))
                 inpd.setTextValue("")
                 completer = QCompleter(all_runners, inpd)
                 completer.setCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
@@ -214,17 +217,20 @@ class ReadoutWindow(QWidget):
                         ).one()
                         runner.si = si_no
                     except:
-                        self._append_log(f"Nenalezeno. Čip je v DB, není ale přiřazen závodníkovi.")
+                        self._append_log(QCoreApplication.translate("ReadoutWindow",
+                                                                    "Nenalezeno. Čip je v DB, není ale přiřazen závodníkovi."))
                         return
                 else:
-                    self._append_log(f"Čip je v DB, není ale přiřazen závodníkovi.")
+                    self._append_log(
+                        QCoreApplication.translate("ReadoutWindow", "Čip je v DB, není ale přiřazen závodníkovi."))
                     return
             else:
                 runner = runners[0]
 
             sess.scalars(Select(Runner).where(Runner.si == si_no)).one().manual_dns = False
 
-            self._append_log(f"Závodník: {runner.name} ({runner.reg}).")
+            self._append_log(
+                QCoreApplication.translate("ReadoutWindow", "Závodník: % (%).") % (runner.name, runner.reg))
             self.state_win.set_runner(
                 f"{runner.name} ({runner.reg}), {runner.category.name}"
             )
@@ -234,9 +240,12 @@ class ReadoutWindow(QWidget):
         if self.printer:
             self.print_readout(si_no)
             if self.double_print_chk.isChecked() and (
-                    self.cut or QMessageBox.warning(self, "Dvojtisk", "Tisknout podruhé?",
-                                                    QMessageBox.StandardButton.Ok,
-                                                    QMessageBox.StandardButton.Abort, ) == QMessageBox.StandardButton.Ok):
+                    self.printer_optns.cut or QMessageBox.warning(self, QCoreApplication.translate("ReadoutWindow",
+                                                                                                   "Dvojtisk"),
+                                                                  QCoreApplication.translate("ReadoutWindow",
+                                                                                             "Tisknout podruhé?"),
+                                                                  QMessageBox.StandardButton.Ok,
+                                                                  QMessageBox.StandardButton.Abort, ) == QMessageBox.StandardButton.Ok):
                 self.print_readout(si_no, True)
 
         self.mw.results_win._update_results()

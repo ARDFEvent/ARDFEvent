@@ -1,3 +1,4 @@
+from PySide6.QtCore import QCoreApplication
 from PySide6.QtWidgets import QWidget, QPushButton, QLabel, QCheckBox, QVBoxLayout
 from sqlalchemy import Select
 from sqlalchemy.orm import Session
@@ -13,13 +14,13 @@ class StartNumberWindow(QWidget):
 
         self.mainlay = QVBoxLayout()
         self.setLayout(self.mainlay)
-        self.setWindowTitle("Přiřazení startovních čísel")
+        self.setWindowTitle(QCoreApplication.translate("StartNumberWindow", "Přiřazení startovních čísel"))
 
-        self.draw_btn = QPushButton("Přiřadit")
+        self.draw_btn = QPushButton(QCoreApplication.translate("StartNumberWindow", "Přiřadit"))
         self.draw_btn.clicked.connect(self._assign)
         self.mainlay.addWidget(self.draw_btn)
 
-        self.mainlay.addWidget(QLabel("Má startovní čísla?"))
+        self.mainlay.addWidget(QLabel(QCoreApplication.translate("StartNumberWindow", "Má startovní čísla?")))
 
         self.edits = {}
 

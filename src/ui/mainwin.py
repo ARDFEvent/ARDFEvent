@@ -1,4 +1,5 @@
 import sqlalchemy
+from PySide6.QtCore import QCoreApplication
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QMainWindow, QTabWidget
 
@@ -61,34 +62,34 @@ class MainWindow(QMainWindow):
         self.mainwid = QTabWidget()
         self.setCentralWidget(self.mainwid)
 
-        self.mainwid.addTab(self.basicinfo_win, "Základní info")
+        self.mainwid.addTab(self.basicinfo_win, QCoreApplication.translate("MainWindow", "Základní info"))
         self.mainwid.setTabIcon(0, QIcon(":/icons/gear.png"))
 
-        self.mainwid.addTab(self.controls_win, "Kontroly")
+        self.mainwid.addTab(self.controls_win, QCoreApplication.translate("MainWindow", "Kontroly"))
         self.mainwid.setTabIcon(1, QIcon(":/icons/tx.png"))
 
-        self.mainwid.addTab(self.categories_win, "Kategorie")
+        self.mainwid.addTab(self.categories_win, QCoreApplication.translate("MainWindow", "Kategorie"))
         self.mainwid.setTabIcon(2, QIcon(":/icons/categories.png"))
 
-        self.mainwid.addTab(self.import_win, "Import")
+        self.mainwid.addTab(self.import_win, QCoreApplication.translate("MainWindow", "Import"))
         self.mainwid.setTabIcon(3, QIcon(":/icons/import.png"))
 
-        self.mainwid.addTab(self.runners_win, "Běžci")
+        self.mainwid.addTab(self.runners_win, QCoreApplication.translate("MainWindow", "Běžci"))
         self.mainwid.setTabIcon(4, QIcon(":/icons/runners.png"))
 
-        self.mainwid.addTab(self.readout_win, "Vyčítání")
+        self.mainwid.addTab(self.readout_win, QCoreApplication.translate("MainWindow", "Vyčítání"))
         self.mainwid.setTabIcon(5, QIcon(":/icons/readout.png"))
 
-        self.mainwid.addTab(self.startlist_win, "Startovka")
+        self.mainwid.addTab(self.startlist_win, QCoreApplication.translate("MainWindow", "Startovka"))
         self.mainwid.setTabIcon(6, QIcon(":/icons/startlist.png"))
 
-        self.mainwid.addTab(self.results_win, "Výsledky")
+        self.mainwid.addTab(self.results_win, QCoreApplication.translate("MainWindow", "Výsledky"))
         self.mainwid.setTabIcon(7, QIcon(":/icons/results.png"))
 
-        self.mainwid.addTab(self.inforest_win, "Závodníci v lese")
+        self.mainwid.addTab(self.inforest_win, QCoreApplication.translate("MainWindow", "Závodníci v lese"))
         self.mainwid.setTabIcon(8, QIcon(":/icons/inforest.png"))
 
-        self.mainwid.addTab(self.experimental_win, "Experimentální")
+        self.mainwid.addTab(self.experimental_win, QCoreApplication.translate("MainWindow", "Experimentální"))
         self.mainwid.setTabIcon(9, QIcon(":/icons/experimental.png"))
 
         self.mainwid.setTabPosition(QTabWidget.TabPosition.North)

@@ -23,7 +23,7 @@ def _is_stale(path: Path, max_age_days: int = 30) -> bool:
 
 
 def download():
-    if _is_stale(Path.home() / ".ardfevent/runners.json") and _is_stale(Path.home() / ".ardfevent/clubs.json"):
+    if not (_is_stale(Path.home() / ".ardfevent/runners.json") or _is_stale(Path.home() / ".ardfevent/clubs.json")):
         return
     clubs_raw = requests.get("https://rob-is.cz/api/club/").json()
 
