@@ -14,5 +14,12 @@ def migrate(dbstr):
     except:
         pass
 
+    try:
+        sess.execute(text("ALTER TABLE controls ADD COLUMN lat REAL DEFAULT NULL;"))
+        sess.execute(text("ALTER TABLE controls ADD COLUMN lon REAL DEFAULT NULL;"))
+        print("Migrated lat,lon:", dbstr)
+    except:
+        pass
+
     sess.commit()
     sess.close()

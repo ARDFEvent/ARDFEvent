@@ -58,11 +58,14 @@ class ControlsWindow(QWidget):
         operationslay.addWidget(self.delete_btn)
 
         self.table = QTableWidget()
-        self.table.setColumnCount(4)
+        self.table.verticalHeader().hide()
+        self.table.setColumnCount(6)
         self.table.setHorizontalHeaderLabels([QCoreApplication.translate("ControlsWindow", "Jméno"),
                                               QCoreApplication.translate("ControlsWindow", "SI kód"),
                                               QCoreApplication.translate("ControlsWindow", "Povinná"),
-                                              QCoreApplication.translate("ControlsWindow", "Divácká")])
+                                              QCoreApplication.translate("ControlsWindow", "Divácká"),
+                                              QCoreApplication.translate("ControlsWindow", "Z. šířka"),
+                                              QCoreApplication.translate("ControlsWindow", "Z. délka")])
         self.table.itemClicked.connect(self._set_last)
 
         mainlay.addWidget(self.table, 1)
@@ -145,8 +148,11 @@ class ControlsWindow(QWidget):
                 code = -1
             mandatory = self.table.item(i, 2).checkState() == Qt.CheckState.Checked
             spectator = self.table.item(i, 3).checkState() == Qt.CheckState.Checked
+            lat = None if self.table.item(i, 4).text() == "" else float(self.table.item(i, 4).text())
+            lon = None if self.table.item(i, 5).text() == "" else float(self.table.item(i, 5).text())
+
             controls.append(
-                Control(name=name, code=code, mandatory=mandatory, spectator=spectator)
+                Control(name=name, code=code, mandatory=mandatory, spectator=spectator, lat=lat, lon=lon)
             )
 
         self._set_controls(controls)
@@ -195,6 +201,14 @@ class ControlsWindow(QWidget):
             it_spectator.setCheckState(Qt.CheckState.Unchecked)
 
         self.table.setItem(i, 3, it_spectator)
+
+        it_lat = QTableWidgetItem(str(control.lat or ""))
+        it_lat.setFlags(Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsEnabled)
+        self.table.setItem(i, 4, it_lat)
+
+        it_lon = QTableWidgetItem(str(control.lon or ""))
+        it_lon.setFlags(Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsEnabled)
+        self.table.setItem(i, 5, it_lon)
 
     def _update_table(self):
         with Session(self.mw.db) as sess:

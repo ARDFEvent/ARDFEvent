@@ -44,6 +44,8 @@ class Control(Base):
     code: Mapped[int]
     mandatory: Mapped[bool]
     spectator: Mapped[bool]
+    lat: Mapped[float | None]
+    lon: Mapped[float | None]
     categories: Mapped[List["Category"]] = relationship(
         secondary=control_associations, back_populates="controls"
     )
