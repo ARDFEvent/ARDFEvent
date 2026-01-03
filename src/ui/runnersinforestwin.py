@@ -76,7 +76,7 @@ class RunnersInForestWindow(QWidget):
         ).all()
 
         self.gen_label.setText(
-            QCoreApplication.translate("RunnersInForestWindow", "Generováno v %s, ") % {now.strftime("%H:%M:%S")}
+            QCoreApplication.translate("RunnersInForestWindow", "Generováno v %s, ") % now.strftime("%H:%M:%S")
             + (
                 QCoreApplication.translate("RunnersInForestWindow",
                                            "VŠICHNI V CÍLI!") if not in_forest else QCoreApplication.translate(
