@@ -1,6 +1,5 @@
 import os
 import sys
-
 import warnings
 
 from PySide6.QtCore import Qt, QCoreApplication, QTranslator, QLocale
@@ -9,7 +8,6 @@ from PySide6.QtWidgets import QApplication, QSplashScreen, QWizard
 
 import api
 import pluginmanager
-
 # noinspection PyUnresolvedReferences
 from ui import resources_init
 
@@ -34,10 +32,10 @@ if __name__ == "__main__":
 
     translator = QTranslator()
     if translator.load(
-        QLocale(LANGUAGES[api.get_config_value("lang", "cs")]),
-        "ARDFEvent_",
-        "",
-        ":/i18n",
+            QLocale(LANGUAGES[api.get_config_value("lang", "cs")]),
+            "ARDFEvent_",
+            "",
+            ":/i18n",
     ):
         app.installTranslator(translator)
 

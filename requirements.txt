@@ -13,3 +13,4 @@ pyramid==2.0.2
 dulwich==0.24.10
 standard-imghdr==3.13.0
 maturin==1.10.2
+qtawesome
