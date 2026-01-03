@@ -230,7 +230,7 @@ class ReadoutWindow(QWidget):
             sess.scalars(Select(Runner).where(Runner.si == si_no)).one().manual_dns = False
 
             self._append_log(
-                QCoreApplication.translate("ReadoutWindow", "Závodník: % (%).") % (runner.name, runner.reg))
+                QCoreApplication.translate("ReadoutWindow", "Závodník: %s (%s).") % (runner.name, runner.reg))
             self.state_win.set_runner(
                 f"{runner.name} ({runner.reg}), {runner.category.name}"
             )
