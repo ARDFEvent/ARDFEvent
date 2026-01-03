@@ -129,23 +129,30 @@ class MainWindow(QMainWindow):
         layout.setStretch(0, 0)
         layout.setStretch(1, 1)
 
-        self._add_page(self.basicinfo_win, "Základní info", qta.icon("mdi6.information-outline"))
-        self._add_page(self.controls_win, "Kontroly", qta.icon("mdi6.antenna"))
-        self._add_page(self.categories_win, "Kategorie", qta.icon("mdi6.account-multiple-outline"))
-        self._add_page(self.import_win, "Import", qta.icon("mdi6.import"))
-        self._add_page(self.runners_win, "Běžci", qta.icon("mdi6.run"))
-        self._add_page(self.readout_win, "Vyčítání", qta.icon("mdi6.cable-data"))
-        self._add_page(self.startlist_win, "Startovka", qta.icon("mdi6.timer-outline"))
-        self._add_page(self.results_win, "Výsledky", qta.icon("mdi6.trophy-outline"))
-        self._add_page(self.inforest_win, "Závodníci v lese", qta.icon("mdi6.pine-tree-variant-outline"))
-        self._add_page(self.experimental_win, "Experimentální", qta.icon("mdi6.flask"))
+        self._add_page(self.basicinfo_win, QCoreApplication.translate("MainWindow", "Základní info"),
+                       qta.icon("mdi6.information-outline"))
+        self._add_page(self.controls_win, QCoreApplication.translate("MainWindow", "Kontroly"),
+                       qta.icon("mdi6.antenna"))
+        self._add_page(self.categories_win, QCoreApplication.translate("MainWindow", "Kategorie"),
+                       qta.icon("mdi6.account-multiple-outline"))
+        self._add_page(self.import_win, QCoreApplication.translate("MainWindow", "Import"), qta.icon("mdi6.import"))
+        self._add_page(self.runners_win, QCoreApplication.translate("MainWindow", "Běžci"), qta.icon("mdi6.run"))
+        self._add_page(self.readout_win, QCoreApplication.translate("MainWindow", "Vyčítání"),
+                       qta.icon("mdi6.cable-data"))
+        self._add_page(self.startlist_win, QCoreApplication.translate("MainWindow", "Startovka"),
+                       qta.icon("mdi6.timer-outline"))
+        self._add_page(self.results_win, QCoreApplication.translate("MainWindow", "Výsledky"),
+                       qta.icon("mdi6.trophy-outline"))
+        self._add_page(self.inforest_win, QCoreApplication.translate("MainWindow", "Závodníci v lese"),
+                       qta.icon("mdi6.pine-tree-variant-outline"))
+        self._add_page(self.experimental_win, QCoreApplication.translate("MainWindow", "Experimentální"),
+                       qta.icon("mdi6.flask"))
 
         self.stack.setCurrentIndex(0)
         self.sidebar.set_current(0)
 
     def _add_page(self, widget, label, icon_path=None):
         self.stack.addWidget(widget)
-        text = QCoreApplication.translate("MainWindow", label)
         icon = QIcon(icon_path) if icon_path else QIcon()
 
         try:
@@ -154,7 +161,7 @@ class MainWindow(QMainWindow):
             idx = -1
 
         if idx >= 0:
-            btn = self.sidebar.add_button(icon, text, idx)
+            btn = self.sidebar.add_button(icon, label, idx)
             try:
                 btn.clicked.connect(lambda checked=False, i=idx: self._on_sidebar_button_clicked(i))
             except Exception:

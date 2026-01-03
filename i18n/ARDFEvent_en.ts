@@ -145,41 +145,37 @@
 <context>
     <name>Loading</name>
     <message>
-        <location filename="../src/main.py" line="44"/>
+        <location filename="../src/main.py" line="42"/>
         <source>Vytvářím složku...</source>
         <translation>Creating folder...</translation>
     </message>
     <message>
-        <location filename="../src/main.py" line="60"/>
+        <location filename="../src/main.py" line="58"/>
         <source>Stahuji registraci...</source>
         <translation>Downloading registration...</translation>
     </message>
     <message>
-        <source>Nejste připojeni k internetu - nebyla aktualizována registrace</source>
-        <translation type="vanished">No internet connection - the registration wasn&apos;t updated</translation>
-    </message>
-    <message>
-        <location filename="../src/main.py" line="79"/>
+        <location filename="../src/main.py" line="77"/>
         <source>Načítám assety...</source>
         <translation>Loading assets...</translation>
     </message>
     <message>
-        <location filename="../src/main.py" line="88"/>
+        <location filename="../src/main.py" line="86"/>
         <source>Inicializuji UI...</source>
         <translation>Initializing UI...</translation>
     </message>
     <message>
-        <location filename="../src/main.py" line="100"/>
+        <location filename="../src/main.py" line="98"/>
         <source>Načten %s</source>
         <translation>Loaded %s</translation>
     </message>
     <message>
-        <location filename="../src/main.py" line="105"/>
+        <location filename="../src/main.py" line="103"/>
         <source>Plugin %s nenačten - nelze ověřit podpis.</source>
         <translation>Plugin %s not loaded - cannot verify signature.</translation>
     </message>
     <message>
-        <location filename="../src/main.py" line="113"/>
+        <location filename="../src/main.py" line="111"/>
         <source>Vítejte v ARDFEventu!</source>
         <translation>Welcome in ARDFEvent!</translation>
     </message>
@@ -187,52 +183,52 @@
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="../src/ui/mainwin.py" line="65"/>
+        <location filename="../src/ui/mainwin.py" line="132"/>
         <source>Základní info</source>
         <translation>Basic info</translation>
     </message>
     <message>
-        <location filename="../src/ui/mainwin.py" line="68"/>
+        <location filename="../src/ui/mainwin.py" line="134"/>
         <source>Kontroly</source>
         <translation>Controls</translation>
     </message>
     <message>
-        <location filename="../src/ui/mainwin.py" line="71"/>
+        <location filename="../src/ui/mainwin.py" line="136"/>
         <source>Kategorie</source>
         <translation>Categories</translation>
     </message>
     <message>
-        <location filename="../src/ui/mainwin.py" line="74"/>
+        <location filename="../src/ui/mainwin.py" line="138"/>
         <source>Import</source>
         <translation>Import</translation>
     </message>
     <message>
-        <location filename="../src/ui/mainwin.py" line="77"/>
+        <location filename="../src/ui/mainwin.py" line="139"/>
         <source>Běžci</source>
         <translation>Competitors</translation>
     </message>
     <message>
-        <location filename="../src/ui/mainwin.py" line="80"/>
+        <location filename="../src/ui/mainwin.py" line="140"/>
         <source>Vyčítání</source>
         <translation>Readout</translation>
     </message>
     <message>
-        <location filename="../src/ui/mainwin.py" line="83"/>
+        <location filename="../src/ui/mainwin.py" line="142"/>
         <source>Startovka</source>
         <translation>Startlist</translation>
     </message>
     <message>
-        <location filename="../src/ui/mainwin.py" line="86"/>
+        <location filename="../src/ui/mainwin.py" line="144"/>
         <source>Výsledky</source>
         <translation>Results</translation>
     </message>
     <message>
-        <location filename="../src/ui/mainwin.py" line="89"/>
+        <location filename="../src/ui/mainwin.py" line="146"/>
         <source>Závodníci v lese</source>
         <translation>Runners in forest</translation>
     </message>
     <message>
-        <location filename="../src/ui/mainwin.py" line="92"/>
+        <location filename="../src/ui/mainwin.py" line="148"/>
         <source>Experimentální</source>
         <translation>Experimental</translation>
     </message>
@@ -369,6 +365,11 @@
         <translation>Card %d already read out. Overwrite?</translation>
     </message>
     <message>
+        <location filename="../src/ui/readoutwin.py" line="233"/>
+        <source>Závodník: %s (%s).</source>
+        <translation>Competitor %s (%s).</translation>
+    </message>
+    <message>
         <location filename="../src/ui/readoutwin.py" line="164"/>
         <source>JIŽ VYČTENÝ ČIP</source>
         <translation>ALREADY READ OUT</translation>
@@ -407,11 +408,6 @@
         <location filename="../src/ui/readoutwin.py" line="225"/>
         <source>Čip je v DB, není ale přiřazen závodníkovi.</source>
         <translation>The card is in the DB, but it&apos;s unassigned.</translation>
-    </message>
-    <message>
-        <location filename="../src/ui/readoutwin.py" line="233"/>
-        <source>Závodník: % (%).</source>
-        <translation>Competitor % (%).</translation>
     </message>
     <message>
         <location filename="../src/ui/readoutwin.py" line="245"/>
