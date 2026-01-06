@@ -8,7 +8,6 @@ from PySide6.QtWidgets import (
     QInputDialog,
     QLabel,
     QMenu,
-    QPushButton,
     QTableWidget,
     QTableWidgetItem,
     QVBoxLayout,
@@ -24,6 +23,7 @@ import exports.xml_results as res_xml
 import results
 from models import Category
 from ui.previewwin import PreviewWindow
+from ui.qtaiconbutton import QTAIconButton
 from web.webserver import ARDFEventServer
 
 
@@ -65,18 +65,25 @@ class ResultsWindow(QWidget):
         export_menu.addAction("ARDF JSON", self._export_json)
         export_menu.addAction("CSV", self._export_csv)
 
-        export_btn = QPushButton(QCoreApplication.translate("ResultsWindow", "Exportovat"))
+        export_btn = QTAIconButton("mdi6.export", QCoreApplication.translate("ResultsWindow", "Exportovat"),
+                                   extra_width=16)
         export_btn.setMenu(export_menu)
         btn_lay.addWidget(export_btn)
 
-        self.webserverbtn = QPushButton(QCoreApplication.translate("ResultsWindow", "Spustit webový server"))
-        self.webserverbtn.clicked.connect(self._toggle_webserver)
-        btn_lay.addWidget(self.webserverbtn)
+        btn_lay.addStretch(2)
+
+        btn_lay.addWidget(QLabel("JJ WEBSERVER:"))
 
         self.state_label = QLabel()
         btn_lay.addWidget(self.state_label)
 
-        self.annbtn = QPushButton(QCoreApplication.translate("ResultsWindow", "Změna hlášení"))
+        self.webserverbtn = QTAIconButton("mdi6.power",
+                                          QCoreApplication.translate("ResultsWindow", "Spustit webový server"))
+        self.webserverbtn.clicked.connect(self._toggle_webserver)
+        btn_lay.addWidget(self.webserverbtn)
+
+        self.annbtn = QTAIconButton("mdi6.alpha-a-box-outline",
+                                    QCoreApplication.translate("ResultsWindow", "Změna hlášení"))
         self.annbtn.clicked.connect(self._set_webserver_announcement)
         btn_lay.addWidget(self.annbtn)
 

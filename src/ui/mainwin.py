@@ -33,7 +33,7 @@ from ui import (
 
 
 class IconSidebar(QWidget):
-    def __init__(self, parent=None, icon_size=QSize(28, 28), width=56):
+    def __init__(self, parent=None, icon_size=QSize(30, 30), width=56):
         super().__init__(parent)
         self._icon_size = icon_size
         self.setFixedWidth(width)
@@ -134,7 +134,7 @@ class MainWindow(QMainWindow):
         self._add_page(self.controls_win, QCoreApplication.translate("MainWindow", "Kontroly"),
                        qta.icon("mdi6.antenna"))
         self._add_page(self.categories_win, QCoreApplication.translate("MainWindow", "Kategorie"),
-                       qta.icon("mdi6.account-multiple-outline"))
+                       qta.icon("mdi6.account-group-outline"))
         self._add_page(self.import_win, QCoreApplication.translate("MainWindow", "Import"), qta.icon("mdi6.import"))
         self._add_page(self.runners_win, QCoreApplication.translate("MainWindow", "Běžci"), qta.icon("mdi6.run"))
         self._add_page(self.readout_win, QCoreApplication.translate("MainWindow", "Vyčítání"),

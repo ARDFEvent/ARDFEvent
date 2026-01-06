@@ -31,6 +31,7 @@ import api
 import results
 from models import Control, Punch, Runner
 from results import format_delta
+from ui.qtaiconbutton import QTAIconButton
 
 
 class ReadoutThread(QThread):
@@ -87,26 +88,33 @@ class ReadoutWindow(QWidget):
         lay = QVBoxLayout()
         self.setLayout(lay)
 
-        portslay = QFormLayout()
+        portslay = QHBoxLayout()
         lay.addLayout(portslay)
 
-        self.state_label = QLabel(QCoreApplication.translate("ReadoutWindow", "Stav: Neaktivní"))
-        lay.addWidget(self.state_label)
-        self.state_label.setStyleSheet("color: red;")
+        portslay.addWidget(QLabel("SI:"))
 
         self.siport_edit = QComboBox()
-        portslay.addRow(QCoreApplication.translate("ReadoutWindow", "Port SI readeru"), self.siport_edit)
+        portslay.addWidget(self.siport_edit)
 
-        printerconfigure_btn = QPushButton(QCoreApplication.translate("ReadoutWindow", "Konfigurovat tiskárnu"))
+        printerconfigure_btn = QTAIconButton("mdi6.printer-pos-wrench-outline",
+                                             QCoreApplication.translate("ReadoutWindow", "Konfigurovat tiskárnu"))
         printerconfigure_btn.clicked.connect(self.printer_win.exec)
         portslay.addWidget(printerconfigure_btn)
 
-        self.double_print_chk = QCheckBox()
-        portslay.addRow(QCoreApplication.translate("ReadoutWindow", "Dvojtisk"), self.double_print_chk)
+        self.double_print_chk = QTAIconButton("mdi6.receipt-text-plus-outline",
+                                              QCoreApplication.translate("ReadoutWindow", "Dvojtisk"))
+        self.double_print_chk.setCheckable(True)
+        portslay.addWidget(self.double_print_chk)
 
-        startreadout_btn = QPushButton(QCoreApplication.translate("ReadoutWindow", "Spustit/vypnout"))
+        portslay.addStretch()
+
+        self.state_label = QLabel(QCoreApplication.translate("ReadoutWindow", "Stav: Neaktivní"))
+        portslay.addWidget(self.state_label)
+        self.state_label.setStyleSheet("color: red;")
+
+        startreadout_btn = QTAIconButton("mdi6.power", QCoreApplication.translate("ReadoutWindow", "Spustit/vypnout"))
         startreadout_btn.clicked.connect(self._toggle_readout)
-        lay.addWidget(startreadout_btn)
+        portslay.addWidget(startreadout_btn)
 
         self.log = QTextBrowser()
         lay.addWidget(self.log)

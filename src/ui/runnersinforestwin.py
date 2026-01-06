@@ -5,7 +5,6 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QHeaderView,
     QLabel,
-    QPushButton,
     QTableWidget,
     QTableWidgetItem,
     QVBoxLayout,
@@ -17,6 +16,7 @@ from sqlalchemy.orm import Session
 import api
 from models import Punch, Runner
 from results import format_delta
+from ui.qtaiconbutton import QTAIconButton
 
 
 class RunnersInForestWindow(QWidget):
@@ -31,7 +31,7 @@ class RunnersInForestWindow(QWidget):
         btn_lay = QHBoxLayout()
         lay.addLayout(btn_lay)
 
-        ochecklist_btn = QPushButton("OCheckList")
+        ochecklist_btn = QTAIconButton("mdi6.check-circle", "OCheckList", color="green")
         ochecklist_btn.clicked.connect(self.mw.ochecklist_win.show)
         btn_lay.addWidget(ochecklist_btn)
 

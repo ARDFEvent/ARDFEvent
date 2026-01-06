@@ -12,6 +12,7 @@ from sqlalchemy import Delete, Select
 from sqlalchemy.orm import Session
 
 from models import Control
+from ui.qtaiconbutton import QTAIconButton
 
 
 class ControlsWindow(QWidget):
@@ -23,39 +24,41 @@ class ControlsWindow(QWidget):
         mainlay = QVBoxLayout()
         self.setLayout(mainlay)
 
-        mainlay.addWidget(QLabel(QCoreApplication.translate("ControlsWindow", "Přednastavené kontroly:")))
+        btnlay = QHBoxLayout()
+        mainlay.addLayout(btnlay)
 
-        presetslay = QHBoxLayout()
-        mainlay.addLayout(presetslay)
+        self.add_btn = QTAIconButton("mdi6.access-point-plus",
+                                     QCoreApplication.translate("ControlsWindow", "Přidat"))
+        self.add_btn.clicked.connect(self._new_control)
+        btnlay.addWidget(self.add_btn)
+
+        self.delete_btn = QTAIconButton("mdi6.access-point-minus",
+                                        QCoreApplication.translate("ControlsWindow", "Smazat"))
+        self.delete_btn.clicked.connect(self._delete)
+        btnlay.addWidget(self.delete_btn)
+
+        self.save_btn = QTAIconButton("mdi6.content-save-outline",
+                                      QCoreApplication.translate("ControlsWindow", "Uložit"))
+        self.save_btn.clicked.connect(self._save)
+        btnlay.addWidget(self.save_btn)
+
+        btnlay.addStretch()
+
+        btnlay.addWidget(QLabel(QCoreApplication.translate("ControlsWindow", "Předvolby:")))
 
         self.slowcontrols_preset = QPushButton(
-            QCoreApplication.translate("ControlsWindow", "Pomalé kontroly (1-5 + M)"))
+            QCoreApplication.translate("ControlsWindow", "1-5 + M"))
         self.slowcontrols_preset.clicked.connect(self._preset_slow)
-        presetslay.addWidget(self.slowcontrols_preset)
+        btnlay.addWidget(self.slowcontrols_preset)
 
         self.allcontrols_preset = QPushButton(
-            QCoreApplication.translate("ControlsWindow", "Všechny kontroly (1-5 + R1-R5 + M)"))
+            QCoreApplication.translate("ControlsWindow", "1-5 + R1-R5 + M"))
         self.allcontrols_preset.clicked.connect(self._preset_all)
-        presetslay.addWidget(self.allcontrols_preset)
+        btnlay.addWidget(self.allcontrols_preset)
 
-        self.sprint_preset = QPushButton(QCoreApplication.translate("ControlsWindow", "Sprint (1-5 + S + R1-R5 + M)"))
+        self.sprint_preset = QPushButton(QCoreApplication.translate("ControlsWindow", "1-5 + S + R1-R5 + M"))
         self.sprint_preset.clicked.connect(self._preset_sprint)
-        presetslay.addWidget(self.sprint_preset)
-
-        operationslay = QHBoxLayout()
-        mainlay.addLayout(operationslay)
-
-        self.add_btn = QPushButton(QCoreApplication.translate("ControlsWindow", "Přidat"))
-        self.add_btn.clicked.connect(self._new_control)
-        operationslay.addWidget(self.add_btn)
-
-        self.save_btn = QPushButton(QCoreApplication.translate("ControlsWindow", "Uložit"))
-        self.save_btn.clicked.connect(self._save)
-        operationslay.addWidget(self.save_btn)
-
-        self.delete_btn = QPushButton(QCoreApplication.translate("ControlsWindow", "Smazat"))
-        self.delete_btn.clicked.connect(self._delete)
-        operationslay.addWidget(self.delete_btn)
+        btnlay.addWidget(self.sprint_preset)
 
         self.table = QTableWidget()
         self.table.verticalHeader().hide()

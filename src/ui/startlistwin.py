@@ -4,7 +4,6 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QHeaderView,
     QMenu,
-    QPushButton,
     QTableWidget,
     QTableWidgetItem,
     QVBoxLayout,
@@ -19,6 +18,7 @@ import exports.robis_csv_startlist as stl_robis_csv
 import exports.xml_startlist as stl_xml
 from models import Runner
 from ui.previewwin import PreviewWindow
+from ui.qtaiconbutton import QTAIconButton
 
 
 class StartlistWindow(QWidget):
@@ -42,15 +42,18 @@ class StartlistWindow(QWidget):
         export_menu.addAction(QCoreApplication.translate("StartListWindow", "JSON pro ROBis"), self._export_json)
         export_menu.addAction(QCoreApplication.translate("StartListWindow", "IOF XML 3.0"), self._export_iof_xml)
 
-        export_btn = QPushButton(QCoreApplication.translate("StartListWindow", "Exportovat"))
+        export_btn = QTAIconButton("mdi6.export", QCoreApplication.translate("StartListWindow", "Exportovat"),
+                                   extra_width=16)
         export_btn.setMenu(export_menu)
         btn_lay.addWidget(export_btn)
 
-        draw_win_btn = QPushButton(QCoreApplication.translate("StartListWindow", "Losovat startovku"))
+        draw_win_btn = QTAIconButton("mdi6.dice-multiple-outline",
+                                     QCoreApplication.translate("StartListWindow", "Losovat startovku"))
         draw_win_btn.clicked.connect(self.mw.startlistdraw_win.setup_win.show)
         btn_lay.addWidget(draw_win_btn)
 
-        startno_win_btn = QPushButton(QCoreApplication.translate("StartListWindow", "Startovní čísla"))
+        startno_win_btn = QTAIconButton("mdi6.numeric-1-box-multiple-outline",
+                                        QCoreApplication.translate("StartListWindow", "Startovní čísla"))
         startno_win_btn.clicked.connect(self.mw.startno_win.show)
         btn_lay.addWidget(startno_win_btn)
 

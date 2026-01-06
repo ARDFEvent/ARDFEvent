@@ -10,16 +10,16 @@ from PySide6.QtWidgets import (
     QLineEdit,
     QListWidget,
     QListWidgetItem,
-    QPushButton,
     QSpinBox,
     QVBoxLayout,
-    QWidget, QInputDialog, QLabel,
+    QWidget, QInputDialog, QLabel, QFrame,
 )
 from sqlalchemy import Delete, Select
 from sqlalchemy.orm import Session
 
 import api
 from models import Category, Runner
+from ui.qtaiconbutton import QTAIconButton
 
 
 class RunnerWindow(QWidget):
@@ -34,13 +34,20 @@ class RunnerWindow(QWidget):
         leftlay = QVBoxLayout()
         mainlay.addLayout(leftlay)
 
-        new_btn = QPushButton(QCoreApplication.translate("RunnerWindow", "Nový"))
+        linelay = QHBoxLayout()
+        leftlay.addLayout(linelay)
+
+        new_btn = QTAIconButton("mdi6.account-plus-outline", QCoreApplication.translate("RunnerWindow", "Nový"))
         new_btn.clicked.connect(self._new_runner)
-        leftlay.addWidget(new_btn)
+        linelay.addWidget(new_btn)
+
+        sep = QFrame()
+        sep.setFrameShape(QFrame.VLine)
+
         self.search = QLineEdit()
         self.search.setPlaceholderText(QCoreApplication.translate("RunnerWindow", "Hledat"))
         self.search.textEdited.connect(self._update_runners_cats)
-        leftlay.addWidget(self.search)
+        linelay.addWidget(self.search)
 
         self.runners_list = QListWidget()
         self.runners_list.itemClicked.connect(self._select_by_user)
@@ -48,6 +55,38 @@ class RunnerWindow(QWidget):
 
         right_lay = QVBoxLayout()
         mainlay.addLayout(right_lay)
+
+        btn_lay = QHBoxLayout()
+        right_lay.addLayout(btn_lay)
+
+        save_btn = QTAIconButton("mdi6.content-save-outline", QCoreApplication.translate("RunnerWindow", "Uložit"))
+        save_btn.clicked.connect(self._save_runner)
+        btn_lay.addWidget(save_btn)
+
+        print_btn = QTAIconButton("mdi6.receipt-text-outline",
+                                  QCoreApplication.translate("RunnerWindow", "Vytisknout výčet"))
+        print_btn.clicked.connect(self._btn_print_readout)
+        btn_lay.addWidget(print_btn)
+
+        snura_btn = QTAIconButton("mdi6.receipt-text-plus-outline",
+                                  QCoreApplication.translate("RunnerWindow", "Vytisknout výčet na šňůru"))
+        snura_btn.clicked.connect(self._btn_print_snura)
+        btn_lay.addWidget(snura_btn)
+
+        send_btn = QTAIconButton("mdi6.earth-arrow-up", QCoreApplication.translate("RunnerWindow", "Odeslat online"))
+        send_btn.clicked.connect(self._send_online)
+        btn_lay.addWidget(send_btn)
+
+        st_btn = QTAIconButton("mdi6.timer-edit-outline",
+                               QCoreApplication.translate("RunnerWindow", "Změnit startovní čas"))
+        st_btn.clicked.connect(self._set_starttime)
+        btn_lay.addWidget(st_btn)
+
+        btn_lay.addStretch()
+
+        delete_btn = QTAIconButton("mdi6.account-minus-outline", QCoreApplication.translate("RunnerWindow", "Smazat"))
+        delete_btn.clicked.connect(self._delete_runner)
+        btn_lay.addWidget(delete_btn)
 
         details_lay = QFormLayout()
         right_lay.addLayout(details_lay)
@@ -86,30 +125,6 @@ class RunnerWindow(QWidget):
 
         self.dsq_edit = QCheckBox()
         details_lay.addRow("DSQ", self.dsq_edit)
-
-        save_btn = QPushButton(QCoreApplication.translate("RunnerWindow", "Uložit"))
-        save_btn.clicked.connect(self._save_runner)
-        details_lay.addWidget(save_btn)
-
-        print_btn = QPushButton(QCoreApplication.translate("RunnerWindow", "Vytisknout výčet"))
-        print_btn.clicked.connect(self._btn_print_readout)
-        details_lay.addWidget(print_btn)
-
-        snura_btn = QPushButton(QCoreApplication.translate("RunnerWindow", "Vytisknout výčet na šňůru"))
-        snura_btn.clicked.connect(self._btn_print_snura)
-        details_lay.addWidget(snura_btn)
-
-        send_btn = QPushButton(QCoreApplication.translate("RunnerWindow", "Odeslat online"))
-        send_btn.clicked.connect(self._send_online)
-        details_lay.addWidget(send_btn)
-
-        st_btn = QPushButton(QCoreApplication.translate("RunnerWindow", "Změnit startovní čas"))
-        st_btn.clicked.connect(self._set_starttime)
-        details_lay.addWidget(st_btn)
-
-        delete_btn = QPushButton(QCoreApplication.translate("RunnerWindow", "Smazat"))
-        delete_btn.clicked.connect(self._delete_runner)
-        details_lay.addWidget(delete_btn)
 
         self.selected = 0
         self.category_indexes = {}
