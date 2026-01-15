@@ -1,0 +1,10 @@
+site_name: Dokumentace JJ ARDFEvent
+nav:
+  - Domů: index.md
+  - Uživatelské rozhraní:
+      - Uvítací okno: ui/welcomewin.md
+      - Hlavní okno: ui/mainwin.md
+      - Základní info: ui/basicinfowin.md
+      - Kontroly: ui/controlswin.md
+      - Kategorie: ui/categorieswin.md
+      - Import: ui/importwin.md
