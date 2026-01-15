@@ -152,9 +152,10 @@ class MainWindow(QMainWindow):
         self.sidebar.set_current(0)
 
     def _add_page(self, widget, label, icon_path=None):
+        self.windows.append(widget)
         self.stack.addWidget(widget)
-        icon = QIcon(icon_path) if icon_path else QIcon()
 
+        icon = QIcon(icon_path) if icon_path else QIcon()
         try:
             idx = self.stack.indexOf(widget)
         except Exception:

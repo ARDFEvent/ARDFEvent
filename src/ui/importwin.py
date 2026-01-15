@@ -30,7 +30,7 @@ class ImportWindow(QWidget):
         lay.addWidget(
             QLabel(
                 QCoreApplication.translate("ImportWindow",
-                                           'Soubor musí obsahovat hlavičku "Jméno;Příjmení;Registrace;SI;Kategorie", podle toho se musí řídit další sloupce.')
+                                           'Soubor musí obsahovat hlavičku "Jméno;Příjmení;Registrace;SI;Kategorie", podle toho se musí řídit další řádky.')
             )
         )
         lay.addWidget(QLabel(QCoreApplication.translate("ImportWindow", "Pro import z ROBis využijte okno ROBis!")))

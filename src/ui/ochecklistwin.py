@@ -78,4 +78,4 @@ class OCheckListWindow(QWidget):
                             f"{runner_db.name}: SI {runner_db.si} => {runner["NewCard"]}"
                         )
 
-        sess.commit()
+            sess.commit()
