@@ -10,3 +10,4 @@ docs/docs_build/build
 src/rust_results/target
 pyvenv.cfg
 *.qm
+Output
