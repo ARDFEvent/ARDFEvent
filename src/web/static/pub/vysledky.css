@@ -1,0 +1,38 @@
+h1 {
+    font-size: larger;
+}
+
+h2 {
+    font-size: large;
+}
+
+td {
+    padding-right: 1em;
+}
+
+.invalid {
+    font-style: italic;
+}
+
+.temp_res {
+    font-style: italic;
+    font-weight: 550;
+    color: rgb(169, 169, 169);
+}
+
+.secondline {
+    font-size: small;
+}
+
+#alert {
+    color: #58151c;
+    font-weight: bold;
+    background-color: #f8d7da;
+    border: solid 1px #f1aeb5;
+    padding: 10px;
+    border-radius: 10px;
+}
+
+#back {
+    font-weight: bold;
+}

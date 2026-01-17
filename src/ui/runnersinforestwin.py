@@ -1,10 +1,10 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
+from PySide6.QtCore import QCoreApplication
 from PySide6.QtWidgets import (
     QHBoxLayout,
     QHeaderView,
     QLabel,
-    QPushButton,
     QTableWidget,
     QTableWidgetItem,
     QVBoxLayout,
@@ -13,8 +13,10 @@ from PySide6.QtWidgets import (
 from sqlalchemy import Select
 from sqlalchemy.orm import Session
 
+import api
 from models import Punch, Runner
 from results import format_delta
+from ui.qtaiconbutton import QTAIconButton
 
 
 class RunnersInForestWindow(QWidget):
@@ -29,7 +31,7 @@ class RunnersInForestWindow(QWidget):
         btn_lay = QHBoxLayout()
         lay.addLayout(btn_lay)
 
-        ochecklist_btn = QPushButton("OCheckList")
+        ochecklist_btn = QTAIconButton("mdi6.check-circle", "OCheckList", color="green")
         ochecklist_btn.clicked.connect(self.mw.ochecklist_win.show)
         btn_lay.addWidget(ochecklist_btn)
 
@@ -55,12 +57,41 @@ class RunnersInForestWindow(QWidget):
             .where(~Runner.manual_disk)
             .where(Runner.si.not_in(Select(Punch.si)))
             .where(Runner.startlist_time < now)
-            .order_by(Runner.reg)
+            .order_by(Runner.startlist_time)
             .order_by(Runner.name)
         ).all()
 
+        finished = sess.scalars(
+            Select(Runner)
+            .where(~Runner.manual_dns)
+            .where(~Runner.manual_disk)
+            .where(Runner.si.in_(Select(Punch.si)))
+        ).all()
+
+        not_started_yet = sess.scalars(
+            Select(Runner)
+            .where(~Runner.manual_dns)
+            .where(~Runner.manual_disk)
+            .where(Runner.startlist_time > now)
+        ).all()
+
         self.gen_label.setText(
-            f"Generováno v {now.strftime("%H:%M:%S")}, {len(in_forest)} osob v lese"
+            QCoreApplication.translate("RunnersInForestWindow", "Generováno v %s, ") % now.strftime("%H:%M:%S")
+            + (
+                QCoreApplication.translate("RunnersInForestWindow",
+                                           "VŠICHNI V CÍLI!") if not in_forest else QCoreApplication.translate(
+                    "RunnersInForestWindow", "%d osob v lese, %d dokončilo, "
+                                             "%d ještě nestartovalo, "
+                                             "limit posledního v lese: %s") % (len(finished), len(in_forest),
+                                                                               len(not_started_yet), (
+                                                                                       in_forest[
+                                                                                           -1].startlist_time + timedelta(
+                                                                                   minutes=int(
+                                                                                       api.get_basic_info(
+                                                                                           self.mw.db)[
+                                                                                           "limit"]))).strftime(
+                        "%H:%M:%S"))
+            )
         )
 
         self.runners_table.clear()
@@ -82,7 +113,13 @@ class RunnersInForestWindow(QWidget):
             else:
                 self.runners_table.setItem(i, 3, QTableWidgetItem("-"))
 
-        self.runners_table.horizontalHeader().hide()
+        self.runners_table.setSortingEnabled(True)
         self.runners_table.verticalHeader().hide()
+        self.runners_table.setHorizontalHeaderLabels(
+            [QCoreApplication.translate("RunnersInForestWindow", "Jméno"),
+             QCoreApplication.translate("RunnersInForestWindow", "Index"),
+             QCoreApplication.translate("RunnersInForestWindow", "Kategorie"),
+             QCoreApplication.translate("RunnersInForestWindow", "Čas v lese")]
+        )
 
         sess.close()

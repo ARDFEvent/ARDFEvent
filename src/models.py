@@ -1,9 +1,8 @@
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import List
 
-from sqlalchemy import Column, DateTime, ForeignKey, String, Table
+from sqlalchemy import Column, ForeignKey, String, Table
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
-from sqlalchemy.types import TypeDecorator
 
 
 class Base(DeclarativeBase): ...
@@ -45,6 +44,8 @@ class Control(Base):
     code: Mapped[int]
     mandatory: Mapped[bool]
     spectator: Mapped[bool]
+    lat: Mapped[float | None]
+    lon: Mapped[float | None]
     categories: Mapped[List["Category"]] = relationship(
         secondary=control_associations, back_populates="controls"
     )
@@ -59,6 +60,7 @@ class Runner(Base):
     si: Mapped[int]
     reg: Mapped[str] = mapped_column(String(255))
     call: Mapped[str] = mapped_column(String(255))
+    startno: Mapped[int | None]
     startlist_time: Mapped[datetime | None]
     category_id: Mapped[int] = mapped_column(ForeignKey("categories.id"))
     category: Mapped["Category"] = relationship(back_populates="runners")

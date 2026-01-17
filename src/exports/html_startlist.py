@@ -50,6 +50,7 @@ def generate(db):
                         if starttime
                         else "-"
                     ),
+                    "startno": person.startno or ""
                 }
             )
         if len(runners):

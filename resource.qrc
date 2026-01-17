@@ -1,17 +1,8 @@
 <!DOCTYPE RCC>
 <RCC version="1.0">
     <qresource>
-        <file>icons/categories.png</file>
-        <file>icons/gear.png</file>
-        <file>icons/import.png</file>
-        <file>icons/inforest.png</file>
-        <file>icons/readout.png</file>
-        <file>icons/results.png</file>
-        <file>icons/robis.png</file>
-        <file>icons/runners.png</file>
-        <file>icons/startlist.png</file>
-        <file>icons/tx.png</file>
         <file>icons/icon.png</file>
         <file>sound/error.wav</file>
+        <file>font/SpaceMono.ttf</file>
     </qresource>
 </RCC>

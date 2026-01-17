@@ -2,23 +2,69 @@ from datetime import datetime
 from pathlib import Path
 
 import sqlalchemy
-from PySide6.QtCore import QSize, Qt
-from PySide6.QtGui import QPixmap
+from PySide6.QtCore import QSize, Qt, QCoreApplication
+from PySide6.QtGui import QPixmap, QPalette
 from PySide6.QtWidgets import (
     QHBoxLayout,
     QInputDialog,
     QLabel,
-    QListWidget,
-    QListWidgetItem,
     QMessageBox,
-    QPushButton,
     QVBoxLayout,
-    QWidget, QMenu,
-)
+    QWidget, QMenu, QScrollArea, QApplication, )
 
 import api
+import migrations
 import models
-from helpers.stages import StagesHelperWindow
+from ui.pluginmanagerwin import PluginManagerWindow
+from ui.qtaiconbutton import QTAIconButton
+
+
+class RaceLine(QWidget):
+    def __init__(self, file: Path, ww):
+        super().__init__()
+
+        self.ww = ww
+        self.file = file
+
+        migrations.migrate(f"sqlite:///{file}")
+        self.db = sqlalchemy.create_engine(f"sqlite:///{file}", max_overflow=-1)
+
+        name = api.get_basic_info(self.db)["name"]
+        date = datetime.fromisoformat(api.get_basic_info(self.db)["date_tzero"])
+
+        lay = QVBoxLayout()
+        self.setLayout(lay)
+
+        det_lay = QHBoxLayout()
+        lay.addLayout(det_lay)
+
+        det_lay.addWidget(QLabel(date.strftime('%d.%m.%Y %H:%M')))
+        det_lay.addStretch()
+
+        fn_lbl = QLabel(file.name)
+        fn_font = fn_lbl.font()
+        fn_font.setPointSize(fn_font.pointSize() - 2)
+        fn_lbl.setFont(fn_font)
+        det_lay.addWidget(fn_lbl)
+
+        title_lbl = QLabel(name)
+        title_font = fn_lbl.font()
+        title_font.setPointSize(title_font.pointSize() + 2)
+        title_font.setBold(True)
+        title_lbl.setFont(title_font)
+        lay.addWidget(title_lbl)
+
+        self.setAutoFillBackground(True)
+
+    def mousePressEvent(self, event, /):
+        self.ww.deactivate_races()
+        pal = self.palette()
+        pal.setColor(QPalette.ColorRole.Window, pal.color(QPalette.ColorRole.Highlight))
+        self.setPalette(pal)
+
+    def mouseDoubleClickEvent(self, event, /):
+        self.ww.mw.show(f"sqlite:///{self.file.absolute()}")
+        self.ww.close()
 
 
 class WelcomeWindow(QWidget):
@@ -44,58 +90,53 @@ class WelcomeWindow(QWidget):
 
         lay.addLayout(logolay)
 
-        new_btn = QPushButton("Nový závod")
+        btn_lay = QHBoxLayout()
+        lay.addLayout(btn_lay)
+
+        btn_lay.addStretch()
+
+        new_btn = QTAIconButton("mdi6.calendar-plus", QCoreApplication.translate("WelcomeWindow", "Nový závod"))
         new_btn.clicked.connect(self._new_race)
-        lay.addWidget(new_btn)
+        btn_lay.addWidget(new_btn)
 
-        del_btn = QPushButton("Smazat závod")
+        del_btn = QTAIconButton("mdi6.calendar-remove", QCoreApplication.translate("WelcomeWindow", "Smazat závod"))
         del_btn.clicked.connect(self._delete)
-        lay.addWidget(del_btn)
+        btn_lay.addWidget(del_btn)
 
-        dbstr_btn = QPushButton("Vlastní DB string")
-        dbstr_btn.clicked.connect(self._custom_dbstr)
-        lay.addWidget(dbstr_btn)
+        self.helpers_menu = QMenu(self)
 
-        self.stage_helper = StagesHelperWindow()
+        self.pluginmanagerwin = PluginManagerWindow(self.mw)
 
-        helpers_menu = QMenu(self)
-        helpers_menu.addAction("Etapový závod", self.stage_helper.show)
+        self.helpers_menu.addAction(
+            QCoreApplication.translate("WelcomeWindow", "Správce pluginů"), self.pluginmanagerwin.show)
 
-        helpers_btn = QPushButton("Nástroje")
-        helpers_btn.setMenu(helpers_menu)
-        lay.addWidget(helpers_btn)
+        helpers_btn = QTAIconButton("mdi6.hammer-wrench", QCoreApplication.translate("WelcomeWindow", "Nástroje"),
+                                    extra_width=16)
+        helpers_btn.setMenu(self.helpers_menu)
+        btn_lay.addWidget(helpers_btn)
 
-        self.races_list = QListWidget()
-        self.races_list.itemDoubleClicked.connect(self._open_race)
-        lay.addWidget(self.races_list)
+        btn_lay.addStretch()
 
+        self.races_scroll = QScrollArea()
+        self.races_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.races_list = QWidget()
+        self.races_lay = QVBoxLayout()
+        self.races_list.setLayout(self.races_lay)
         self._load_races()
-
-    def _custom_dbstr(self):
-        dbstr, ok = QInputDialog.getText(self, "Vlastní DB string", "Zadejte DB string")
-        if ok:
-            self.mw.show(dbstr)
-            self.close()
+        self.races_scroll.setWidget(self.races_list)
+        lay.addWidget(self.races_scroll)
 
     def _load_races(self):
-        self.races_list.clear()
-
-        self.races = []
-
         for file in (Path.home() / ".ardfevent").glob("*.sqlite"):
             try:
-                self.db = sqlalchemy.create_engine(f"sqlite:///{file}", max_overflow=-1)
-
-                title = f"{datetime.fromisoformat(api.get_basic_info(self.db)["date_tzero"]).strftime('%d.%m.%Y %H:%M')} - {api.get_basic_info(self.db)["name"]} ({file.name})"
-                self.races.append((title, file))
-
-                self.races_list.addItem(QListWidgetItem(title))
+                self.races_lay.addWidget(RaceLine(file, self))
             except:
                 ...
-        self.setMinimumSize(self.races_list.sizeHintForColumn(0) + 50, 300)
+        self.setMinimumWidth(self.races_list.sizeHint().width() + 37)
 
     def _new_race(self):
-        title, ok = QInputDialog.getText(self, "Nový závod", "Zadejte ID závodu")
+        title, ok = QInputDialog.getText(self, QCoreApplication.translate("WelcomeWindow", "Nový závod"),
+                                         QCoreApplication.translate("WelcomeWindow", "Zadejte ID závodu"))
         if ok and title:
             file = Path.home() / ".ardfevent" / f"{title}.sqlite"
             if not file.exists():
@@ -118,6 +159,10 @@ class WelcomeWindow(QWidget):
         else:
             return
 
+    def deactivate_races(self):
+        for i in range(self.races_lay.count()):
+            self.races_lay.itemAt(i).widget().setPalette(QApplication.palette())
+
     def _delete(self):
         item = self.races_list.currentItem()
         if not item:
@@ -125,8 +170,8 @@ class WelcomeWindow(QWidget):
         if (
                 QMessageBox.critical(
                     self,
-                    "Smazat závod",
-                    f"Opravdu chcete smazat závod {item.text()}?",
+                    QCoreApplication.translate("WelcomeWindow", "Smazat závod"),
+                    QCoreApplication.translate("WelcomeWindow", "Opravdu chcete smazat závod %s?") % item.text(),
                     QMessageBox.Yes | QMessageBox.No,
                 )
                 == QMessageBox.Yes
@@ -136,10 +181,3 @@ class WelcomeWindow(QWidget):
                     file.unlink()
                     self._load_races()
                     break
-
-    def _open_race(self, item: QListWidgetItem):
-        for title, file in self.races:
-            if item.text() == title:
-                self.mw.show(f"sqlite:///{file.absolute()}/")
-                self.close()
-                break

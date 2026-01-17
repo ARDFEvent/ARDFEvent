@@ -1,31 +1,25 @@
-import time
-from datetime import timedelta
+from datetime import timedelta, datetime
 
-from escpos.printer import Serial
-from PySide6.QtCore import QStringListModel, Qt
+from PySide6.QtCore import QStringListModel, Qt, QCoreApplication
 from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
     QCompleter,
     QFormLayout,
     QHBoxLayout,
-    QInputDialog,
     QLineEdit,
     QListWidget,
     QListWidgetItem,
-    QPushButton,
     QSpinBox,
-    QTimeEdit,
     QVBoxLayout,
-    QWidget,
+    QWidget, QInputDialog, QLabel, QFrame,
 )
-from serial.tools.list_ports import comports
 from sqlalchemy import Delete, Select
 from sqlalchemy.orm import Session
 
 import api
 from models import Category, Runner
-from ui.readoutwin import print_readout
+from ui.qtaiconbutton import QTAIconButton
 
 
 class RunnerWindow(QWidget):
@@ -34,21 +28,26 @@ class RunnerWindow(QWidget):
 
         self.mw = mw
 
-        sess = Session(self.mw.db)
-
         mainlay = QHBoxLayout()
         self.setLayout(mainlay)
 
         leftlay = QVBoxLayout()
         mainlay.addLayout(leftlay)
 
-        new_btn = QPushButton("Nový")
+        linelay = QHBoxLayout()
+        leftlay.addLayout(linelay)
+
+        new_btn = QTAIconButton("mdi6.account-plus-outline", QCoreApplication.translate("RunnerWindow", "Nový"))
         new_btn.clicked.connect(self._new_runner)
-        leftlay.addWidget(new_btn)
+        linelay.addWidget(new_btn)
+
+        sep = QFrame()
+        sep.setFrameShape(QFrame.VLine)
+
         self.search = QLineEdit()
-        self.search.setPlaceholderText("Hledat")
+        self.search.setPlaceholderText(QCoreApplication.translate("RunnerWindow", "Hledat"))
         self.search.textEdited.connect(self._update_runners_cats)
-        leftlay.addWidget(self.search)
+        linelay.addWidget(self.search)
 
         self.runners_list = QListWidget()
         self.runners_list.itemClicked.connect(self._select_by_user)
@@ -57,13 +56,45 @@ class RunnerWindow(QWidget):
         right_lay = QVBoxLayout()
         mainlay.addLayout(right_lay)
 
+        btn_lay = QHBoxLayout()
+        right_lay.addLayout(btn_lay)
+
+        save_btn = QTAIconButton("mdi6.content-save-outline", QCoreApplication.translate("RunnerWindow", "Uložit"))
+        save_btn.clicked.connect(self._save_runner)
+        btn_lay.addWidget(save_btn)
+
+        print_btn = QTAIconButton("mdi6.receipt-text-outline",
+                                  QCoreApplication.translate("RunnerWindow", "Vytisknout výčet"))
+        print_btn.clicked.connect(self._btn_print_readout)
+        btn_lay.addWidget(print_btn)
+
+        snura_btn = QTAIconButton("mdi6.receipt-text-plus-outline",
+                                  QCoreApplication.translate("RunnerWindow", "Vytisknout výčet na šňůru"))
+        snura_btn.clicked.connect(self._btn_print_snura)
+        btn_lay.addWidget(snura_btn)
+
+        send_btn = QTAIconButton("mdi6.earth-arrow-up", QCoreApplication.translate("RunnerWindow", "Odeslat online"))
+        send_btn.clicked.connect(self._send_online)
+        btn_lay.addWidget(send_btn)
+
+        st_btn = QTAIconButton("mdi6.timer-edit-outline",
+                               QCoreApplication.translate("RunnerWindow", "Změnit startovní čas"))
+        st_btn.clicked.connect(self._set_starttime)
+        btn_lay.addWidget(st_btn)
+
+        btn_lay.addStretch()
+
+        delete_btn = QTAIconButton("mdi6.account-minus-outline", QCoreApplication.translate("RunnerWindow", "Smazat"))
+        delete_btn.clicked.connect(self._delete_runner)
+        btn_lay.addWidget(delete_btn)
+
         details_lay = QFormLayout()
         right_lay.addLayout(details_lay)
 
         self.name_edit = QLineEdit()
         self.name_edit.textEdited.connect(self._save_runner)
 
-        details_lay.addRow("Jméno", self.name_edit)
+        details_lay.addRow(QCoreApplication.translate("RunnerWindow", "Jméno"), self.name_edit)
 
         self.name_completer = QCompleter([])
         self.name_completer.highlighted.connect(self._prefill_runner)
@@ -71,24 +102,23 @@ class RunnerWindow(QWidget):
         self.name_edit.setCompleter(self.name_completer)
 
         self.club_edit = QLineEdit()
-        details_lay.addRow("Klub", self.club_edit)
+        details_lay.addRow(QCoreApplication.translate("RunnerWindow", "Klub"), self.club_edit)
 
         self.SI_edit = QSpinBox()
         self.SI_edit.setMaximum(10_000_000)
-        details_lay.addRow("SI", self.SI_edit)
+        details_lay.addRow(QCoreApplication.translate("RunnerWindow", "SI"), self.SI_edit)
 
         self.reg_edit = QLineEdit()
-        details_lay.addRow("Reg. číslo", self.reg_edit)
-
-        self.call_edit = QLineEdit()
-        details_lay.addRow("Volačka", self.call_edit)
+        details_lay.addRow(QCoreApplication.translate("RunnerWindow", "Reg. číslo"), self.reg_edit)
 
         self.category_edit = QComboBox()
-        details_lay.addRow("Kategorie", self.category_edit)
+        details_lay.addRow(QCoreApplication.translate("RunnerWindow", "Kategorie"), self.category_edit)
 
-        self.starttime_edit = QTimeEdit()
-        self.starttime_edit.setDisplayFormat("HH:mm:ss")
-        details_lay.addRow("Start dle startovky", self.starttime_edit)
+        self.startno_edit = QSpinBox()
+        details_lay.addRow(QCoreApplication.translate("RunnerWindow", "Startovní číslo"), self.startno_edit)
+
+        self.starttime_lbl = QLabel()
+        details_lay.addRow(QCoreApplication.translate("RunnerWindow", "Startovní čas"), self.starttime_lbl)
 
         self.dns_edit = QCheckBox()
         details_lay.addRow("DNS", self.dns_edit)
@@ -96,22 +126,27 @@ class RunnerWindow(QWidget):
         self.dsq_edit = QCheckBox()
         details_lay.addRow("DSQ", self.dsq_edit)
 
-        save_btn = QPushButton("Uložit")
-        save_btn.clicked.connect(self._save_runner)
-        details_lay.addWidget(save_btn)
-
-        print_btn = QPushButton("Vytisknout výčet")
-        print_btn.clicked.connect(self._print_readout)
-        details_lay.addWidget(print_btn)
-
-        delete_btn = QPushButton("Smazat")
-        delete_btn.clicked.connect(self._delete_runner)
-        details_lay.addWidget(delete_btn)
-
         self.selected = 0
         self.category_indexes = {}
 
-        sess.close()
+    def _set_starttime(self):
+        with Session(self.mw.db) as sess:
+            runner = self._get_runner(sess)
+            if runner:
+                runner.startlist_time = datetime.fromisoformat(
+                    api.get_basic_info(self.mw.db)["date_tzero"]) + timedelta(minutes=
+                                                                              QInputDialog.getDouble(
+                                                                                  self,
+                                                                                  QCoreApplication.translate(
+                                                                                      "RunnerWindow", "Startovní čas"),
+                                                                                  QCoreApplication.translate(
+                                                                                      "RunnerWindow",
+                                                                                      "Zadejte relativní startovní čas (min)"),
+                                                                                  minValue=-1440,
+                                                                                  maxValue=1440,
+                                                                                  step=0.1)[0])
+
+            sess.commit()
 
     def _prefill_runner(self, text):
         registration = api.get_registered_runners()
@@ -133,28 +168,24 @@ class RunnerWindow(QWidget):
         self._select_by_user(QListWidgetItem(self.name_edit.text()))
 
     def _save_runner(self):
-        sess = Session(self.mw.db)
-        runner = self._get_runner(sess)
-        if runner:
-            runner.name = self.name_edit.text()
-            runner.club = self.club_edit.text()
-            runner.si = self.SI_edit.text()
-            runner.reg = self.reg_edit.text()
-            runner.call = self.call_edit.text()
-            if self.starttime_edit.isEnabled():
-                runner.startlist_time = (
-                    self.starttime_edit.dateTime().toPython().astimezone()
-                )
-            runner.category = sess.scalars(
-                Select(Category).where(
-                    Category.name == self.category_edit.currentText()
-                )
-            ).one()
-            runner.manual_dns = self.dns_edit.isChecked()
-            runner.manual_disk = self.dsq_edit.isChecked()
+        with Session(self.mw.db) as sess:
+            runner = self._get_runner(sess)
+            if runner:
+                runner.name = self.name_edit.text()
+                runner.club = self.club_edit.text()
+                runner.si = self.SI_edit.text()
+                runner.reg = self.reg_edit.text()
+                runner.startno = self.startno_edit.value() or None
 
-        sess.commit()
-        sess.close()
+                runner.category = sess.scalars(
+                    Select(Category).where(
+                        Category.name == self.category_edit.currentText()
+                    )
+                ).one()
+                runner.manual_dns = self.dns_edit.isChecked()
+                runner.manual_disk = self.dsq_edit.isChecked()
+
+            sess.commit()
 
         self._update_runners_cats()
 
@@ -164,37 +195,31 @@ class RunnerWindow(QWidget):
         self._update_runners_cats()
         self._select(text)
 
+    def _send_online(self):
+        self.mw.pl.readout(int(self.SI_edit.text()))
+
     def _select(self, text):
-        sess = Session(self.mw.db)
-        runner = sess.scalars(Select(Runner).where(Runner.name == text)).one_or_none()
+        with Session(self.mw.db) as sess:
+            runner = sess.scalars(Select(Runner).where(Runner.name == text)).one_or_none()
 
-        if runner:
-            self.name_edit.setText(runner.name)
-            self.club_edit.setText(runner.club)
-            self.SI_edit.setValue(runner.si)
-            self.reg_edit.setText(runner.reg)
-            self.call_edit.setText(runner.call)
-            if runner.startlist_time:
-                self.starttime_edit.setDisabled(False)
-                self.starttime_edit.setDateTime(
-                    runner.startlist_time
-                    + timedelta(seconds=-time.timezone)
-                    + timedelta(hours=(1 if time.daylight else 0))
+            if runner:
+                self.name_edit.setText(runner.name)
+                self.club_edit.setText(runner.club)
+                self.SI_edit.setValue(runner.si)
+                self.reg_edit.setText(runner.reg)
+                self.startno_edit.setValue(runner.startno or 0)
+                self.starttime_lbl.setText(runner.startlist_time.strftime("%H:%M:%S") if runner.startlist_time else "-")
+
+                self.category_edit.setCurrentIndex(
+                    self.category_indexes[runner.category.name]
                 )
+
+                self.dns_edit.setChecked(runner.manual_dns)
+                self.dsq_edit.setChecked(runner.manual_disk)
+
+                self.selected = runner.id
             else:
-                self.starttime_edit.setDisabled(True)
-
-            self.category_edit.setCurrentIndex(
-                self.category_indexes[runner.category.name]
-            )
-
-            self.dns_edit.setChecked(runner.manual_dns)
-            self.dsq_edit.setChecked(runner.manual_disk)
-
-            self.selected = runner.id
-        else:
-            raise ValueError("Runner not found")
-        sess.close()
+                raise ValueError("Runner not found")
 
     def _update_runners_cats(self):
         self.runners_list.clear()
@@ -202,36 +227,34 @@ class RunnerWindow(QWidget):
         cat_index = self.category_edit.currentIndex()
         self.category_edit.clear()
 
-        sess = Session(self.mw.db)
-        api.renumber_runners(self.mw.db)
+        with Session(self.mw.db) as sess:
+            api.renumber_runners(self.mw.db)
 
-        runners = sess.scalars(
-            Select(Runner)
-            .where(Runner.name.icontains(self.search.text()))
-            .order_by(Runner.name.asc())
-        ).all()
-        for runner in runners:
-            self.runners_list.addItem(QListWidgetItem(runner.name))
+            runners = sess.scalars(
+                Select(Runner)
+                .where(Runner.name.icontains(self.search.text()))
+                .order_by(Runner.name.asc())
+            ).all()
+            for runner in runners:
+                self.runners_list.addItem(QListWidgetItem(runner.name))
 
-        i = 0
-        categories = sess.scalars(Select(Category).order_by(Category.name.asc())).all()
-        for category in categories:
-            self.category_edit.addItem(category.name)
-            self.category_indexes[category.name] = i
-            i += 1
+            i = 0
+            categories = sess.scalars(Select(Category).order_by(Category.name.asc())).all()
+            for category in categories:
+                self.category_edit.addItem(category.name)
+                self.category_indexes[category.name] = i
+                i += 1
 
-        self.category_edit.setCurrentIndex(cat_index)
+            self.category_edit.setCurrentIndex(cat_index)
 
-        runners = sess.scalars(Select(Runner)).all()
+            runners = sess.scalars(Select(Runner)).all()
 
-        registered = api.get_registered_names()
-        for runner in runners:
-            if runner.name in registered:
-                registered.remove(runner.name)
+            registered = api.get_registered_names()
+            for runner in runners:
+                if runner.name in registered:
+                    registered.remove(runner.name)
 
-        self.name_completer.setModel(QStringListModel(registered))
-
-        sess.close()
+            self.name_completer.setModel(QStringListModel(registered))
 
     def _new_runner(self):
         if not self.runners_list.count() == 0:
@@ -239,54 +262,50 @@ class RunnerWindow(QWidget):
         try:
             self._select("")
         except:
-            sess = Session(self.mw.db)
-            runner = Runner(
-                name=f"",
-                club="",
-                si=0,
-                reg=f"",
-                call="",
-                category=sess.scalars(Select(Category)).first(),
-                startlist_time=None,
-            )
-            sess.add(runner)
+            with Session(self.mw.db) as sess:
+                runner = Runner(
+                    name=f"",
+                    club="",
+                    si=0,
+                    reg=f"",
+                    call="",
+                    category=sess.scalars(Select(Category)).first(),
+                    startlist_time=None,
+                )
+                sess.add(runner)
 
-            sess.commit()
-            sess.close()
+                sess.commit()
 
             self._select("")
 
             self._update_runners_cats()
 
     def _delete_runner(self):
-        sess = Session(self.mw.db)
-        sess.execute(Delete(Runner).where(Runner.id == self.selected))
-        sess.commit()
+        with Session(self.mw.db) as sess:
+            sess.execute(Delete(Runner).where(Runner.id == self.selected))
+            sess.commit()
 
         self._update_runners_cats()
         if self.runners_list.item(0):
             self._select(self.runners_list.item(0).text())
         else:
             self._new_runner()
-        sess.close()
 
-    def _print_readout(self):
-        sess = Session(self.mw.db)
-        runner = sess.scalars(
-            Select(Runner).where(Runner.id == self.selected)
-        ).one_or_none()
+    def _print_readout(self, snura):
+        if self.mw.readout_win.printer:
+            with Session(self.mw.db) as sess:
+                runner = sess.scalars(
+                    Select(Runner).where(Runner.id == self.selected)
+                ).one_or_none()
 
-        if runner:
-            inpd = QInputDialog()
-            inpd.setComboBoxItems([p.device for p in comports()[::-1]])
-            inpd.setLabelText("Vyberte port tiskárny")
-            inpd.setWindowTitle("Tisk")
-            if inpd.exec() == QInputDialog.DialogCode.Accepted:
-                printer = Serial(inpd.textValue())
-                print_readout(self.mw.db, runner.si, printer)
-                printer.close()
+                if runner:
+                    self.mw.readout_win.print_readout(runner.si, snura)
 
-        sess.close()
+    def _btn_print_readout(self):
+        self._print_readout(False)
+
+    def _btn_print_snura(self):
+        self._print_readout(True)
 
     def _show(self):
         self._update_runners_cats()

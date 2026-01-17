@@ -1,0 +1,14 @@
+[package]
+name = "rust_results"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "rust_results"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.26.0", features = ["chrono"] }
+chrono = "0.4"
+rusqlite = { version = "0.37.0", features = ["bundled", "chrono"] }
+

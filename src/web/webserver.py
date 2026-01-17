@@ -81,25 +81,50 @@ class ARDFEventServer:
 
     def get_announcement(self, request: Request):
         return Response(
-            json.dumps({"ann": self.announcement, "robis": bool(api.get_basic_info(self.db)["robis_api"])}),
+            json.dumps({"name": api.get_basic_info(self.db)["name"],
+                        "date_tzero": datetime.fromisoformat(api.get_basic_info(self.db)["date_tzero"]).strftime(
+                            "%d. %m. %Y, %H:%M"), "ann": self.announcement,
+                        "robis": api.get_basic_info(self.db)["robis_api"] != ""}),
             content_type="application/json",
             charset="UTF-8",
         )
 
-    def run_server(self):
+    def run_server(self, host):
         with Configurator() as config:
-            config.add_route("static", "/static")
             config.add_static_view(
-                name="static",
+                name="/static",
                 path=(
-                    str((Path(__file__).parent / "static").absolute())
+                    str((Path(__file__).parent / "static" / "common").absolute())
                     if not getattr(sys, "frozen", False)
-                    else str(Path(sys._MEIPASS) / "web" / "static")
+                    else str(Path(sys._MEIPASS) / "web" / "static" / "common")
                 ),
             )
 
-            config.add_route("home", "/")
-            config.add_view(lambda x, y: HTTPFound(location="/static/setup.html"), route_name="home")
+            config.add_static_view(
+                name="/org",
+                path=(
+                    str((Path(__file__).parent / "static" / "org").absolute())
+                    if not getattr(sys, "frozen", False)
+                    else str(Path(sys._MEIPASS) / "web" / "static" / "org")
+                ),
+            )
+
+            config.add_static_view(
+                name="/pub",
+                path=(
+                    str((Path(__file__).parent / "static" / "pub").absolute())
+                    if not getattr(sys, "frozen", False)
+                    else str(Path(sys._MEIPASS) / "web" / "static" / "pub")
+                ),
+            )
+
+            config.add_route("pubhome", "/")
+            config.add_view(lambda x, y: HTTPFound(location="/pub/"), route_name="pubhome")
+            config.add_route("orghome", "/org")
+            config.add_view(lambda x, y: HTTPFound(location="/org/setup.html"), route_name="orghome")
+            config.add_route("favicon", "/favicon.ico")
+            config.add_view(lambda x, y: HTTPFound(location="/static/favicon.ico"), route_name="favicon")
+
             config.add_route("results", "/api/results")
             config.add_view(self.results, route_name="results")
             config.add_route("categories", "/api/categories")
@@ -107,5 +132,5 @@ class ARDFEventServer:
             config.add_route("announcement", "/api/announcement")
             config.add_view(self.get_announcement, route_name="announcement")
             app = config.make_wsgi_app()
-        server = make_server("127.0.0.1", 8080, app)
+        server = make_server(host, 8000, app)
         server.serve_forever()
