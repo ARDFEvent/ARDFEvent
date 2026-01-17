@@ -63,7 +63,7 @@ class RaceLine(QWidget):
         self.setPalette(pal)
 
     def mouseDoubleClickEvent(self, event, /):
-        self.ww.mw.show(f"sqlite:///{self.file.absolute()}/")
+        self.ww.mw.show(f"sqlite:///{self.file.absolute()}")
         self.ww.close()
 
 

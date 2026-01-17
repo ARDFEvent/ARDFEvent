@@ -49,15 +49,21 @@ class PluginManager:
         if not (verfile.exists() and versig.exists()):
             return False
         files = {}
-        with open(verfile, "rb") as verf, open(versig, "rb") as sigf:
-            ver = verf.read()
-            s = pgpy.PGPSignature()
-            s.parse(sigf.read())
+        with open(verfile, "rb") as verf:
+            data = verf.read()
+            if b"\r\n" in data:
+                data = data.replace(b"\r\n", b"\n")
             try:
-                self.pub_key.verify(ver, s)
-            except:
+                sig = pgpy.PGPSignature.from_file(versig)
+                try:
+                    if not self.pub_key.verify(data, sig):
+                        return False
+                except TypeError:
+                    if not self.pub_key.verify(data.decode("utf-8"), sig):
+                        return False
+            except Exception:
                 return False
-            for line in ver.decode("utf-8").splitlines():
+            for line in data.decode("utf-8").splitlines():
                 data = line.split("  ")
                 files[data[1]] = data[0]
         for file in glob.glob(str(plugroot) + "/*"):
@@ -76,7 +82,7 @@ class PluginManager:
                 hsh = hashlib.sha256()
                 with open(path, 'rb') as f:
                     while True:
-                        data = f.read(BUF_SIZE)
+                        data = f.read(BUF_SIZE).replace(b"\r\n", b"\n")
                         if not data:
                             break
                         hsh.update(data)
