@@ -5,6 +5,7 @@ import warnings
 from PySide6.QtCore import Qt, QCoreApplication, QTranslator, QLocale
 from PySide6.QtGui import QPixmap, QFontDatabase
 from PySide6.QtWidgets import QApplication, QSplashScreen, QWizard
+import certifi
 
 import api
 import pluginmanager
@@ -17,6 +18,9 @@ LANGUAGES = {
 }
 
 if __name__ == "__main__":
+    os.environ['SSL_CERT_FILE'] = certifi.where()
+    os.environ['REQUESTS_CA_BUNDLE'] = certifi.where()
+
     warnings.filterwarnings("ignore")
 
     QApplication.setAttribute(Qt.AA_ShareOpenGLContexts)
