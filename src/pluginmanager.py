@@ -96,6 +96,19 @@ class PluginManager:
         with open(pluginp, "r", encoding="utf-8") as pf:
             plugin = json.load(pf)
         sys.path.append(str(Path(pluginp).parent.absolute()))
+
+        try:
+            import plugin as app_plugin
+        except Exception:
+            app_plugin = None
+            try:
+                from src import plugin as app_plugin
+            except Exception:
+                app_plugin = None
+        if app_plugin is not None:
+            sys.modules.setdefault("plugin", app_plugin)
+            sys.modules.setdefault("src.plugin", app_plugin)
+
         spec = importlib.util.spec_from_file_location(plugin["name"],
                                                       Path(pluginp).parent / plugin["file"])
         plugmod = importlib.util.module_from_spec(spec)

@@ -1,3 +1,4 @@
+import os
 import time
 from datetime import datetime, timedelta
 
@@ -569,6 +570,11 @@ class PrinterSetupDialog(QDialog):
         ok_btn.clicked.connect(self._ok)
         main_lay.addWidget(ok_btn)
 
+        if os.name == "nt":
+            self.usb_optn.setEnabled(False)
+            epson_btn.setEnabled(False)
+            self.usb_optn.setText(self.usb_optn.text() + " (nedostupné na Windows)")
+
         self._toggle()
 
     def _logo_select(self):
@@ -597,6 +603,11 @@ class PrinterSetupDialog(QDialog):
                                                    self.title_check.isChecked(), self.feed_edit.value(),
                                                    self.cut_check.isChecked(), self.logo_lbl.text(),
                                                    self.link_check.isChecked(), self.qr_check.isChecked())
+        
+        self.rdowin.printer.textln("Zde tisknu!")
+        self.rdowin.printer.print_and_feed(self.feed_edit.value())
+        if self.cut_check.isChecked():
+            self.rdowin.printer.cut()
         self.close()
 
     def _epson_preset(self):
