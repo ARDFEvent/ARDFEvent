@@ -1,7 +1,6 @@
 import shutil
 from pathlib import Path
 
-from dulwich import porcelain
 from PySide6.QtCore import QCoreApplication
 from PySide6.QtWidgets import (
     QCheckBox,
@@ -11,6 +10,7 @@ from PySide6.QtWidgets import (
     QWizard,
     QWizardPage,
 )
+from dulwich import porcelain
 
 import api
 
@@ -92,8 +92,8 @@ class DefaultPluginPage(QWizardPage):
         if not (Path.home() / ".ardfevent" / "plugins").exists():
             (Path.home() / ".ardfevent" / "plugins").mkdir(parents=True)
         urls = [
-            "https://github.com/jacobczsk/ARDFEvent_robisplugin",
-            "https://github.com/jacobczsk/ARDFEvent_stagesplugin",
+            "https://github.com/ARDFEvent/robisplugin.git",
+            "https://github.com/ARDFEvent/stagesplugin.git",
         ]
         for url, chk in zip(urls, [self.robis_chk, self.stage_chk]):
             if chk.isChecked():
