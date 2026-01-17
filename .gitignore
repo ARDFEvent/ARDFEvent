@@ -11,3 +11,4 @@ src/rust_results/target
 pyvenv.cfg
 *.qm
 Output
+src/ui/resources*
