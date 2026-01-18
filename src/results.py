@@ -11,10 +11,6 @@ def format_delta(td: timedelta):
     return f"{mins:02}:{secs:02}"
 
 
-def calculate_category_rust(db: Engine, name: str, include_unknown: bool = False):
-    return calculate_category_raw(db.url.database, name, include_unknown)
-
-
 if MODE == "py":
     # noinspection PyUnresolvedReferences
     from py_results import calculate_category, Result
