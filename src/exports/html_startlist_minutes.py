@@ -42,7 +42,6 @@ def generate(db):
                     "reg": person.reg,
                     "si": person.si,
                     "category": person.category.name,
-                    "startno": person.startno or "",
                 }
             )
         minutes.append(

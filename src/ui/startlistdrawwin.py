@@ -1,12 +1,14 @@
 import random
-from datetime import timedelta, datetime
+import time
+from datetime import timedelta
 
-from PySide6.QtCore import Qt, QSize, QCoreApplication
+from dateutil.parser import parser
 from PySide6.QtWidgets import (
+    QDateTimeEdit,
     QDoubleSpinBox,
     QFormLayout,
     QPushButton,
-    QWidget, QListWidget, QListWidgetItem, QSpinBox, QLabel, QVBoxLayout,
+    QWidget,
 )
 from sqlalchemy import Select
 from sqlalchemy.orm import Session
@@ -14,11 +16,8 @@ from sqlalchemy.orm import Session
 import api
 from models import Category, Runner
 
-COLORS = [Qt.GlobalColor.red, Qt.GlobalColor.darkGreen, Qt.GlobalColor.darkBlue, Qt.GlobalColor.darkMagenta,
-          Qt.GlobalColor.darkYellow, Qt.GlobalColor.darkCyan]
 
-
-class StartListDrawSetupWindow(QWidget):
+class StartlistDrawWindow(QWidget):
     def __init__(self, mw):
         super().__init__()
 
@@ -26,24 +25,17 @@ class StartListDrawSetupWindow(QWidget):
 
         self.mainlay = QFormLayout()
         self.setLayout(self.mainlay)
-        self.setWindowTitle(QCoreApplication.translate("StartListDrawWindow", "Nastavení losování startovní listiny"))
+        self.setWindowTitle("Startovní listina")
 
-        self.draw_btn = QPushButton(QCoreApplication.translate("StartListDrawWindow", "Otevřít losování"))
-        self.draw_btn.clicked.connect(self._open_draw)
+        self.base_interval_edit = QDoubleSpinBox()
+        self.base_interval_edit.setSingleStep(0.5)
+        self.mainlay.addRow("Startovní interval", self.base_interval_edit)
+
+        self.draw_btn = QPushButton("Losovat!")
+        self.draw_btn.clicked.connect(self._draw)
         self.mainlay.addRow(self.draw_btn)
 
-        self.mainlay.addRow("", QLabel(QCoreApplication.translate("StartListDrawWindow", "Losovací řádek")))
-
         self.edits = {}
-
-    def _open_draw(self):
-        param = []
-        lines = 0
-        for cat_name, edit in self.edits.items():
-            param.append((cat_name, edit.value()))
-            lines = max(lines, edit.value())
-        self.mw.startlistdraw_win.show(param, lines)
-        self.close()
 
     def show(self):
         self._show()
@@ -53,88 +45,30 @@ class StartListDrawSetupWindow(QWidget):
         for edit in self.edits.values():
             self.mainlay.removeRow(edit)
 
-        with Session(self.mw.db) as sess:
-            categories = sess.scalars(Select(Category)).all()
+        sess = Session(self.mw.db)
 
-            for cat in categories:
-                if not len(
-                        sess.scalars(Select(Runner).where(Runner.category == cat)).all()
-                ):
-                    continue
+        zero = parser().parse(api.get_basic_info(self.mw.db)["date_tzero"])
 
-                cat_edit = QSpinBox()
-                cat_edit.setMinimum(1)
+        categories = sess.scalars(Select(Category)).all()
 
-                self.mainlay.addRow(cat.name, cat_edit)
-                self.edits[cat.name] = cat_edit
+        for cat in categories:
+            if not len(
+                sess.scalars(Select(Runner).where(Runner.category == cat)).all()
+            ):
+                continue
 
+            cat_edit = QDateTimeEdit()
+            cat_edit.setDateTime(zero)
 
-class StartlistDrawWindow(QWidget):
-    def __init__(self, mw):
-        super().__init__()
+            self.mainlay.addRow(cat.name, cat_edit)
+            self.edits[cat.name] = cat_edit
 
-        self.mw = mw
+        sess.close()
 
-        self.setup_win = StartListDrawSetupWindow(mw)
-
-        self.parlay = QVBoxLayout()
-        self.setLayout(self.parlay)
-
-        self.mainlay = QFormLayout()
-        self.parlay.addLayout(self.mainlay)
-        self.setWindowTitle(QCoreApplication.translate("StartListDrawWindow", "Startovní listina"))
-
-        self.base_interval_edit = QDoubleSpinBox()
-        self.base_interval_edit.setSingleStep(0.5)
-        self.mainlay.addRow(QCoreApplication.translate("StartListDrawWindow", "Startovní interval"),
-                            self.base_interval_edit)
-
-        self.draw_btn = QPushButton(QCoreApplication.translate("StartListDrawWindow", "Losovat!"))
-        self.draw_btn.clicked.connect(self._draw)
-        self.mainlay.addRow(self.draw_btn)
-
-        self.parlay.addStretch(2)
-
-        self.lines = []
-
-    def show(self, param, lines):
-        self._show(param, lines)
-        super().showMaximized()
-
-    def _show(self, param, lines):
-        for line in self.lines:
-            self.mainlay.removeRow(line)
-
-        self.lines = []
-
-        for i in range(lines):
-            line = QListWidget()
-            self.mainlay.addRow(QCoreApplication.translate("StartListDrawWindow", "Los. řádek %d" % (i + 1)), line)
-
-            line.setFlow(QListWidget.Flow.LeftToRight)
-
-            line.setDragEnabled(True)
-            line.setDragDropMode(QListWidget.DragDropMode.InternalMove)
-            line.setMaximumHeight(60)
-
-            self.lines.append(line)
-
-        with Session(self.mw.db) as sess:
-            i = 0
-            for name, line in param:
-                runners = len(
-                    sess.scalars(Select(Runner).where(Runner.category.has(name=name))).all()
-                )
-                item = QListWidgetItem(f"{name}\n{runners}")
-                item.setSizeHint(QSize(runners * 40, 50))
-                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                item.setBackground(COLORS[i % len(COLORS)])
-                self.lines[line - 1].addItem(item)
-                i += 1
-
-    def draw_category(self, cat_name, cat_zero, baseint_delta):
-        last = cat_zero
-        with Session(self.mw.db) as sess:
+    def _draw(self):
+        baseint_delta = timedelta(seconds=self.base_interval_edit.value() * 60)
+        sess = Session(self.mw.db)
+        for cat_name in self.edits.keys():
             cat = sess.scalars(
                 Select(Category).where(Category.name == cat_name)
             ).first()
@@ -154,27 +88,19 @@ class StartlistDrawWindow(QWidget):
 
             clubs.sort(key=len, reverse=True)
 
+            cat_zero = self.edits[cat_name].dateTime().toPython()
+
             i = 0
             while len(clubs) != 0:
                 for club in clubs:
                     random.shuffle(club)
-                    club[0].startlist_time = last
-                    last = club[0].startlist_time + baseint_delta
+                    club[0].startlist_time = cat_zero + baseint_delta * i
                     club.pop(0)
                     i += 1
                 while [] in clubs:
                     clubs.remove([])
-            sess.commit()
-        return last
 
-    def _draw(self):
-        baseint_delta = timedelta(seconds=self.base_interval_edit.value() * 60)
-        with Session(self.mw.db) as sess:
-            for line in self.lines:
-                last = datetime.fromisoformat(api.get_basic_info(self.mw.db)["date_tzero"])
-                for item in line.findItems("*", Qt.MatchWildcard):
-                    cat_name = item.text().split("\n")[0]
-                    last = self.draw_category(cat_name, last, baseint_delta)
         sess.commit()
+        sess.close()
 
         self.mw.startlist_win._update_startlist()

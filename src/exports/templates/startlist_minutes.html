@@ -6,8 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Startovka - {{ event.name }}</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap');
-        
         @page {
             size: A4;
             margin: 7mm 7mm 7mm 7mm;
@@ -30,7 +28,7 @@
 
 
         * {
-            font-family: "Space Mono", monospace;
+            font-family: monospace;
         }
 
         h1 {
@@ -62,8 +60,8 @@
 <h2>Startovka po minutách</h2>
 <br>
 <table>
+    <tbody>
     {% for minute in minutes %}
-    <tbody style="page-break-inside: avoid;">
     <tr>
         <td colspan="4">
             <hr>
@@ -78,13 +76,12 @@
     <tr>
         <td>{{ runner.category }}</td>
         <td>{{ runner.name }}</td>
-        <td>{{ runner.startno }}</td>
         <td>{{ runner.reg }}</td>
         <td>{{ runner.si }}</td>
     </tr>
     {% endfor %}
-    </tbody>
     {% endfor %}
+    </tbody>
 </table>
 <span id="footer">JJ ARDFEvent, &copy; Jakub Jiroutek</span>
 </body>

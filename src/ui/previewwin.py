@@ -1,4 +1,3 @@
-from PySide6.QtCore import QCoreApplication
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtWidgets import QFileDialog, QPushButton, QVBoxLayout, QWidget
 
@@ -9,12 +8,12 @@ class PreviewWindow(QWidget):
 
         self.html = html
 
-        self.setWindowTitle(QCoreApplication.translate("PreviewWindow", "Náhled"))
+        self.setWindowTitle("Náhled")
 
         lay = QVBoxLayout()
         self.setLayout(lay)
 
-        self.export_btn = QPushButton(QCoreApplication.translate("PreviewWindow", "Exportovat"))
+        self.export_btn = QPushButton("Exportovat")
         self.export_btn.clicked.connect(self._export)
         lay.addWidget(self.export_btn)
 
@@ -27,7 +26,7 @@ class PreviewWindow(QWidget):
     def _export(self):
         fn = QFileDialog.getSaveFileName(
             self,
-            QCoreApplication.translate("PreviewWindow", "Exportovat HTML"),
+            "Export HTML",
             filter=("HTML (*.html)"),
         )[0]
 

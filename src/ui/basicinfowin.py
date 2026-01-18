@@ -1,14 +1,15 @@
 from datetime import datetime
 
-from PySide6.QtCore import QCoreApplication
+from dateutil.parser import parser
 from PySide6.QtWidgets import (
     QComboBox,
     QDateTimeEdit,
     QFormLayout,
     QLineEdit,
+    QPushButton,
     QSpinBox,
-    QWidget, )
-from dateutil.parser import parser
+    QWidget,
+)
 
 import api
 
@@ -23,29 +24,27 @@ class BasicInfoWindow(QWidget):
         self.setLayout(lay)
 
         self.name_edit = QLineEdit()
-        self.name_edit.editingFinished.connect(self._save)
-        lay.addRow(QCoreApplication.translate("BasicInfoWindow", "Jméno"), self.name_edit)
+        lay.addRow("Jméno", self.name_edit)
 
         self.date_edit = QDateTimeEdit()
-        self.date_edit.setDisplayFormat("dd. MM. yyyy HH:mm")
-        self.date_edit.editingFinished.connect(self._save)
-        lay.addRow(QCoreApplication.translate("BasicInfoWindow", "Datum a čas"), self.date_edit)
+        lay.addRow("Datum a čas", self.date_edit)
 
         self.org_edit = QLineEdit()
-        self.org_edit.editingFinished.connect(self._save)
-        lay.addRow(QCoreApplication.translate("BasicInfoWindow", "Pořadatel"), self.org_edit)
+        lay.addRow("Pořadatel", self.org_edit)
 
         self.limit_edit = QSpinBox()
-        self.limit_edit.editingFinished.connect(self._save)
         self.limit_edit.setRange(0, 10000)
-        lay.addRow(QCoreApplication.translate("BasicInfoWindow", "Limit"), self.limit_edit)
+        lay.addRow("Limit", self.limit_edit)
 
         self.band_select = QComboBox()
         self.band_select.addItems(api.BANDS)
-        self.band_select.currentTextChanged.connect(self._save)
-        lay.addRow(QCoreApplication.translate("BasicInfoWindow", "Pásmo"), self.band_select)
+        lay.addRow("Pásmo", self.band_select)
 
-    def _save(self, *args):
+        ok_btn = QPushButton("OK")
+        ok_btn.clicked.connect(self._on_ok)
+        lay.addRow(ok_btn)
+
+    def _on_ok(self):
         api.set_basic_info(
             self.mw.db,
             {

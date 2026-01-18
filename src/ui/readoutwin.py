@@ -1,9 +1,7 @@
-import os
 import time
 from datetime import datetime, timedelta
 
-from PySide6.QtCore import QThread, Signal, QCoreApplication
-from PySide6.QtCore import QUrl
+from PySide6.QtCore import QThread, QUrl, Signal
 from PySide6.QtGui import QCloseEvent, Qt
 from PySide6.QtMultimedia import QSoundEffect
 from PySide6.QtWidgets import (
@@ -19,10 +17,9 @@ from PySide6.QtWidgets import (
     QPushButton,
     QTextBrowser,
     QVBoxLayout,
-    QWidget, QHBoxLayout, QRadioButton, QSpinBox, QFrame, QFileDialog,
+    QWidget,
 )
-from escpos.escpos import Escpos
-from escpos.printer import Usb, Serial, Dummy
+from escpos.printer import Serial
 from serial.tools.list_ports import comports
 from sportident import SIReaderReadout
 from sqlalchemy import Delete, Select
@@ -32,7 +29,6 @@ import api
 import results
 from models import Control, Punch, Runner
 from results import format_delta
-from ui.qtaiconbutton import QTAIconButton
 
 
 class ReadoutThread(QThread):
@@ -71,16 +67,10 @@ class ReadoutWindow(QWidget):
     def __init__(self, mw):
         super().__init__()
 
-        self.printer: Escpos | None = None
-        self.printer_optns: PrinterOptions | None = None
-
         self.mw = mw
-        self.state_win = ReadoutStatusWindow(mw)
-        self.printer_win = PrinterSetupDialog(self)
+        self.state_win = ReadoutStatusWindow()
 
         self.proc: ReadoutThread = None
-
-        self.snura_i = 0
 
         self.on_readout.connect(self._handle_readout)
         self.si_error.connect(self._show_si_error)
@@ -89,41 +79,31 @@ class ReadoutWindow(QWidget):
         lay = QVBoxLayout()
         self.setLayout(lay)
 
-        portslay = QHBoxLayout()
+        portslay = QFormLayout()
         lay.addLayout(portslay)
 
-        portslay.addWidget(QLabel("SI:"))
-
-        self.siport_edit = QComboBox()
-        portslay.addWidget(self.siport_edit)
-
-        printerconfigure_btn = QTAIconButton("mdi6.printer-pos-wrench-outline",
-                                             QCoreApplication.translate("ReadoutWindow", "Konfigurovat tiskárnu"))
-        printerconfigure_btn.clicked.connect(self.printer_win.exec)
-        portslay.addWidget(printerconfigure_btn)
-
-        self.double_print_chk = QTAIconButton("mdi6.receipt-text-plus-outline",
-                                              QCoreApplication.translate("ReadoutWindow", "Dvojtisk"))
-        self.double_print_chk.setCheckable(True)
-        portslay.addWidget(self.double_print_chk)
-
-        portslay.addStretch()
-
-        self.state_label = QLabel(QCoreApplication.translate("ReadoutWindow", "Stav: Neaktivní"))
-        portslay.addWidget(self.state_label)
+        self.state_label = QLabel("Stav: Neaktivní")
+        lay.addWidget(self.state_label)
         self.state_label.setStyleSheet("color: red;")
 
-        startreadout_btn = QTAIconButton("mdi6.power", QCoreApplication.translate("ReadoutWindow", "Spustit/vypnout"))
+        self.siport_edit = QComboBox()
+        portslay.addRow("Port SI readeru", self.siport_edit)
+        self.printer_edit = QComboBox()
+        portslay.addRow("Port tiskárny", self.printer_edit)
+
+        self.double_print_chk = QCheckBox()
+        portslay.addRow("Dvojtisk", self.double_print_chk)
+
+        startreadout_btn = QPushButton("Spustit/vypnout")
         startreadout_btn.clicked.connect(self._toggle_readout)
-        portslay.addWidget(startreadout_btn)
+        lay.addWidget(startreadout_btn)
 
         self.log = QTextBrowser()
         lay.addWidget(self.log)
 
     def _show_si_error(self):
-        self.state_win.set_error(QCoreApplication.translate("ReadoutWindow", "CHYBA SI"))
-        QMessageBox.critical(self, QCoreApplication.translate("ReadoutWindow", "Chyba"),
-                             QCoreApplication.translate("ReadoutWindow", "Zkuste to znovu"))
+        self.state_win.set_error("CHYBA SI")
+        QMessageBox.critical(self, "Chyba", "Zkuste to znovu")
         self.state_win.set_error(None)
 
     def _toggle_readout(self):
@@ -131,10 +111,6 @@ class ReadoutWindow(QWidget):
             self.proc.terminate()
             self.proc.wait()
             self.proc = None
-            self.state_win.stop()
-            if self.printer:
-                self.printer.close()
-
         else:
             self.proc = ReadoutThread(self, self.siport_edit.currentText())
             self.proc.started.connect(self._proc_running)
@@ -142,18 +118,25 @@ class ReadoutWindow(QWidget):
             self.proc.start()
 
             self.state_win.show()
-            self.state_win.set_ports(self.siport_edit.currentText())
+            self.state_win.set_ports(
+                self.siport_edit.currentText(), self.printer_edit.currentText()
+            )
+
+            self.printer = (
+                Serial(self.printer_edit.currentText())
+                if self.printer_edit.currentText() != "Netisknout"
+                else None
+            )
 
     def _proc_running(self):
-        self.state_label.setText(QCoreApplication.translate("ReadoutWindow", "Stav: Aktivní"))
+        self.state_label.setText("Stav: Aktivní")
         self.state_label.setStyleSheet("color: green;")
 
     def _proc_stopped(self, msg=None):
-        self.state_label.setText(QCoreApplication.translate("ReadoutWindow", "Stav: Neaktivní"))
+        self.state_label.setText("Stav: Neaktivní")
         self.state_label.setStyleSheet("color: red;")
         self.log.setText(
-            self.log.toPlainText() + msg + "\n" if msg else QCoreApplication.translate("ReadoutWindow",
-                                                                                       "Čtení ukončeno.\n")
+            self.log.toPlainText() + msg + "\n" if msg else "Čtení ukončeno.\n"
         )
         self.state_win.close()
 
@@ -164,115 +147,148 @@ class ReadoutWindow(QWidget):
         si_no = data["card_number"]
 
         self._append_log("---------------------------------")
-        self._append_log(QCoreApplication.translate("ReadoutWindow", "Byl vyčten čip %d.") % si_no)
+        self._append_log(f"Byl vyčten čip {si_no}.")
 
-        with Session(self.mw.db) as sess:
-            runners = sess.scalars(Select(Runner).where(Runner.si == si_no)).all()
+        sess = Session(self.mw.db)
+        runners = sess.scalars(Select(Runner).where(Runner.si == si_no)).all()
 
-            if len(sess.scalars(Select(Punch).where(Punch.si == si_no)).all()) != 0:
-                self.state_win.set_error(QCoreApplication.translate("ReadoutWindow", "JIŽ VYČTENÝ ČIP"))
-                if (
-                        QMessageBox.warning(
-                            self,
-                            QCoreApplication.translate("ReadoutWindow", "Chyba"),
-                            QCoreApplication.translate("ReadoutWindow", "Čip %d byl již vyčten. Přepsat?") % si_no,
-                            QMessageBox.StandardButton.Yes,
-                            QMessageBox.StandardButton.No,
-                        )
-                        == QMessageBox.StandardButton.Yes
-                ):
-                    self._append_log(QCoreApplication.translate("ReadoutWindow", "Přepsán předchozí zápis."))
-                    sess.execute(Delete(Punch).where(Punch.si == si_no))
-                    self.state_win.set_error(None)
-                else:
-                    self._append_log(QCoreApplication.translate("ReadoutWindow", "Zrušeno vyčtení."))
-                    self.state_win.set_error(None)
-                    return
+        if len(runners) == 0:
+            self.state_win.set_error("NENALEZEN ČIP")
+            all_runners = map(lambda x: x.name, sess.scalars(Select(Runner)).all())
 
-            for punch in data["punches"]:
-                sess.add(Punch(si=si_no, code=punch[0], time=punch[1].replace(microsecond=0)))
+            inpd = QInputDialog()
+            inpd.setWindowTitle("Nepřiřazený čip")
+            inpd.setLabelText("Čip není přiřazen. Zadejte jméno.")
+            inpd.setTextValue("")
+            completer = QCompleter(all_runners, inpd)
+            completer.setCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
+            label: QLineEdit = inpd.findChild(QLineEdit)
+            label.setCompleter(completer)
 
-            if data["start"]:
-                sess.add(Punch(si=si_no, code=1000, time=data["start"].replace(microsecond=0)))
+            ok, name = (
+                inpd.exec() == QDialog.Accepted,
+                inpd.textValue(),
+            )
+            self.state_win.set_error(None)
 
-            if data["finish"]:
-                sess.add(Punch(si=si_no, code=1001, time=data["finish"].replace(microsecond=0)))
-
-            if len(runners) == 0:
-                self.state_win.set_error(QCoreApplication.translate("ReadoutWindow", "NENALEZEN ČIP"))
-                all_runners = map(lambda x: x.name if not x.startno else f"{x.startno}, {x.name}",
-                                  sess.scalars(Select(Runner)).all())
-
-                inpd = QInputDialog()
-                inpd.setWindowTitle(QCoreApplication.translate("ReadoutWindow", "Nepřiřazený čip"))
-                inpd.setLabelText(
-                    QCoreApplication.translate("ReadoutWindow", "Čip není přiřazen. Zadejte jméno nebo st. číslo."))
-                inpd.setTextValue("")
-                completer = QCompleter(all_runners, inpd)
-                completer.setCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
-                label: QLineEdit = inpd.findChild(QLineEdit)
-                label.setCompleter(completer)
-
-                ok, name = (
-                    inpd.exec() == QDialog.Accepted,
-                    inpd.textValue(),
-                )
-                self.state_win.set_error(None)
-
-                if ok:
-                    try:
-                        runner = sess.scalars(
-                            Select(Runner).where(Runner.name == name)
-                        ).one()
-                        runner.si = si_no
-                    except:
-                        self._append_log(QCoreApplication.translate("ReadoutWindow",
-                                                                    "Nenalezeno. Čip je v DB, není ale přiřazen závodníkovi."))
-                        return
-                else:
-                    self._append_log(
-                        QCoreApplication.translate("ReadoutWindow", "Čip je v DB, není ale přiřazen závodníkovi."))
+            if ok:
+                try:
+                    runner = sess.scalars(
+                        Select(Runner).where(Runner.name == name)
+                    ).one()
+                    runner.si = si_no
+                except:
+                    self._append_log(f"Nenalezeno.")
+                    sess.close()
                     return
             else:
-                runner = runners[0]
+                self._append_log(f"Zrušeno vyčtení.")
+                sess.close()
+                return
+        else:
+            runner = runners[0]
 
-            sess.scalars(Select(Runner).where(Runner.si == si_no)).one().manual_dns = False
+        if (
+                data["start"] or runners[0].startlist_time or datetime(1970, 1, 1)
+        ) - timedelta(hours=1) > data["check"]:
+            self.state_win.set_error("CHECK ERROR")
+            if (
+                    QMessageBox.warning(
+                        self,
+                        "Chyba",
+                        f"Čip {si_no} nemá CHECK - je nejspíše nevymazaný. Pokračovat?",
+                        QMessageBox.StandardButton.Yes,
+                        QMessageBox.StandardButton.No,
+                    )
+                    == QMessageBox.StandardButton.Yes
+            ):
+                self.state_win.set_error(None)
+            else:
+                self._append_log(f"Zrušeno vyčtení.")
+                sess.close()
+                self.state_win.set_error(None)
+                return
 
-            self._append_log(
-                QCoreApplication.translate("ReadoutWindow", "Závodník: %s (%s).") % (runner.name, runner.reg))
-            self.state_win.set_runner(
-                f"{runner.name} ({runner.reg}), {runner.category.name}"
-            )
+        sess.scalars(Select(Runner).where(Runner.si == si_no)).one().manual_dns = False
 
-            sess.commit()
+        if len(sess.scalars(Select(Punch).where(Punch.si == si_no)).all()) != 0:
+            self.state_win.set_error("JIŽ VYČTENÝ ČIP")
+            if (
+                    QMessageBox.warning(
+                        self,
+                        "Chyba",
+                        f"Čip {si_no} byl již vyčten. Přepsat?",
+                        QMessageBox.StandardButton.Yes,
+                        QMessageBox.StandardButton.No,
+                    )
+                    == QMessageBox.StandardButton.Yes
+            ):
+                self._append_log(f"Přepsán předchozí zápis.")
+                sess.execute(Delete(Punch).where(Punch.si == si_no))
+                self.state_win.set_error(None)
+            else:
+                self._append_log(f"Zrušeno vyčtení.")
+                sess.close()
+                self.state_win.set_error(None)
+                return
+
+        self._append_log(f"Závodník: {runner.name} ({runner.reg}).")
+        self.state_win.set_runner(
+            f"{runner.name} ({runner.reg}), {runner.category.name}"
+        )
+
+        for punch in data["punches"]:
+            sess.add(Punch(si=si_no, code=punch[0], time=punch[1]))
+
+        if data["start"]:
+            sess.add(Punch(si=si_no, code=1000, time=data["start"]))
+
+        if data["finish"]:
+            sess.add(Punch(si=si_no, code=1001, time=data["finish"]))
+
+        sess.commit()
+        sess.close()
 
         if self.printer:
-            self.print_readout(si_no)
-            if self.double_print_chk.isChecked() and (
-                    self.printer_optns.cut or QMessageBox.warning(self, QCoreApplication.translate("ReadoutWindow",
-                                                                                                   "Dvojtisk"),
-                                                                  QCoreApplication.translate("ReadoutWindow",
-                                                                                             "Tisknout podruhé?"),
-                                                                  QMessageBox.StandardButton.Ok,
-                                                                  QMessageBox.StandardButton.Abort, ) == QMessageBox.StandardButton.Ok):
-                self.print_readout(si_no, True)
+            print_readout(self.mw.db, si_no, self.printer)
+            if (
+                    self.double_print_chk.isChecked()
+                    and QMessageBox.warning(
+                self,
+                "Dvojtisk",
+                "Tisknout podruhé?",
+                QMessageBox.StandardButton.Ok,
+                QMessageBox.StandardButton.Abort,
+            )
+                    == QMessageBox.StandardButton.Ok
+            ):
+                print_readout(self.mw.db, si_no, self.printer, True)
 
         self.mw.results_win._update_results()
         self.mw.inforest_win._update()
-        self.mw.pl.readout(si_no)
+        self.mw.robis_win._send_online_readout(self.mw.db, si_no)
 
     def _update_ports(self):
         oldportsi = self.siport_edit.currentText()
+        oldportprinter = self.printer_edit.currentText()
 
         self.siport_edit.clear()
+        self.printer_edit.clear()
+
+        self.printer_edit.addItem("Netisknout")
 
         for port in comports()[::-1]:
             self.siport_edit.addItem(port.device)
+            self.printer_edit.addItem(port.device)
 
-        if self.proc is not None:
+        if self.proc != None:
             idx_si = self.siport_edit.findData(oldportsi)
             if idx_si != -1:
                 self.siport_edit.setCurrentIndex(idx_si)
+
+            idx_printer = self.printer_edit.findData(oldportprinter)
+            if idx_printer != -1:
+                self.printer_edit.setCurrentIndex(idx_printer)
 
     def _show(self):
         self._update_ports()
@@ -281,378 +297,150 @@ class ReadoutWindow(QWidget):
         try:
             self.proc.terminate()
             self.proc.wait()
-            self.state_win.stop()
         except:
             ...
         super().closeEvent(event)
 
-    def print_readout(self, si: int, snura=False):
-        def text(string: str = ""):
-            self.printer._raw(string.encode("cp852"))
 
-        def line(string: str = ""):
-            text(string + "\n")
+def print_readout(db, si: int, printer: Serial, snura=False):
+    def text(string: str = ""):
+        printer._raw(string.encode("cp852"))
 
-        with Session(self.mw.db) as sess:
-            runner = sess.scalars(Select(Runner).where(Runner.si == si)).one()
-            basic_info = api.get_basic_info(self.mw.db)
-            results_cat = results.calculate_category(self.mw.db, runner.category.name)
-            try:
-                result = list(filter(lambda x: x.name == runner.name, results_cat))[0]
-            except:
-                return
+    def line(string: str = ""):
+        text(string + "\n")
 
-            if not snura:
-                if self.printer_optns.logo:
-                    self.printer.set(align="center", double_height=False)
-                    self.printer.image(self.printer_optns.logo)
+    basic_info = api.get_basic_info(db)
 
-                if self.printer_optns.title:
-                    self.printer.set(align="center", double_height=True)
-                    line(basic_info["name"])
-                    self.printer.set(align="center", double_height=False)
-                    line(datetime.fromisoformat(basic_info["date_tzero"]).strftime("%d. %m. %Y"))
-                self.printer.set(align="left")
-                line()
-            else:
-                self.snura_i += 1
-                line(runner.category.name)
-                line(f"LÍSTEK Č. {self.snura_i}, {datetime.now().strftime("%H:%M:%S")}")
-                if result.status == "OK":
-                    line(f"{result.place}. MÍSTO")
-                else:
-                    line("NA KONEC - není OK")
-                line("\n")
+    if not snura:
+        printer.set(align="center", double_height=True)
+        line(basic_info["name"])
+        printer.set(align="center", double_height=False)
+        line(datetime.fromisoformat(basic_info["date_tzero"]).strftime("%d. %m. %Y"))
+        printer.set(align="left")
+        line()
+    else:
+        text("\n\n\n\n\n\n")
 
-            punches = list(sess.scalars(Select(Punch).where(Punch.si == si)).all())
-            punches.sort(key=lambda x: x.time)
+    sess = Session(db)
 
-            start = sess.scalars(
-                Select(Punch).where(Punch.si == si).where(Punch.code == 1000)
-            ).one_or_none()
+    runner = sess.scalars(Select(Runner).where(Runner.si == si)).one()
+    punches = list(sess.scalars(Select(Punch).where(Punch.si == si)).all())
+    punches.sort(key=lambda x: x.time)
 
-            if not snura:
-                self.printer.set(bold=True)
-                text(runner.name)
-                self.printer.set(bold=False)
-                text(f" ({runner.reg}), ")
-                self.printer.set(bold=True)
-                line(runner.category.name)
-                self.printer.set(bold=False)
-                line(f"Klub:  {runner.club}")
-                line(f"SI:    {runner.si}")
-            else:
-                self.printer.set(align="center", double_height=True)
-                line(runner.name)
-                self.printer.set(align="left", double_height=False)
-                line(f"{runner.reg}, {runner.category.name}")
+    start = sess.scalars(
+        Select(Punch).where(Punch.si == si).where(Punch.code == 1000)
+    ).one_or_none()
 
-            startovka = None
+    if not snura:
+        printer.set(bold=True)
+        text(runner.name)
+        printer.set(bold=False)
+        line(f" ({runner.reg})")
+        line(f"Kat.:  {runner.category.name}")
+        line(f"Klub:  {runner.club}")
+        line(f"SI:    {runner.si}")
+    else:
+        printer.set(align="center", double_height=True)
+        line(runner.name)
+        printer.set(align="left", double_height=False)
+        line(f"{runner.reg}, {runner.category.name}")
 
-            if runner.startlist_time:
-                startovka = runner.startlist_time
-                line(f"Start: {startovka.strftime('%H:%M:%S')}")
+    startovka = None
 
-            line("")
+    if runner.startlist_time:
+        startovka = runner.startlist_time
+        line(f"Start: {startovka.strftime('%H:%M:%S')}")
 
-            if start:
-                stime: datetime = start.time
-            elif startovka:
-                stime: datetime = startovka
-            else:
-                stime: datetime = datetime.fromisoformat(api.get_basic_info(self.mw.db)["date_tzero"])
+    line("")
 
-            lasttime = stime
+    if start:
+        stime: datetime = start.time
+    elif startovka:
+        stime: datetime = startovka
+    else:
+        stime: datetime = datetime.fromisoformat(api.get_basic_info(db)["date_tzero"])
 
-            self.printer.set(bold=True)
-            line(f"Kód\tČas\tMezičas{"\t Reálný čas" if self.printer_optns.paper else ""}".expandtabs(10))
-            self.printer.set(bold=False)
+    lasttime = stime
 
-            for punch in punches:
-                controls = sess.scalars(
-                    Select(Control).where(Control.code == punch.code)
-                ).all()
+    printer.set(bold=True)
+    line("Kód\tČas\tMezičas".expandtabs(10))
+    printer.set(bold=False)
 
-                for icontrol in controls:
-                    if icontrol in runner.category.controls:
-                        control = icontrol
-                        break
-                else:
-                    control = controls[0] if len(controls) else None
+    for punch in punches:
+        control = sess.scalars(
+            Select(Control).where(Control.code == punch.code)
+        ).one_or_none()
+        if control:
+            cn_name = f"({punch.code}) {control.name if control in runner.category.controls else f"{control.name}+"}"
+        elif punch.code == 1000:
+            cn_name = "Start"
+        elif punch.code == 1001:
+            cn_name = "Finish"
+        else:
+            cn_name = f"({punch.code}) N/A"
+        ptime: datetime = punch.time
+        fromstart = ptime - stime
+        split = ptime - lasttime
 
-                if control:
-                    cn_name = f"({punch.code}) {control.name if control in runner.category.controls else f'{control.name}+'}"
-                elif punch.code == 1000:
-                    cn_name = "Start"
-                elif punch.code == 1001:
-                    cn_name = "Finish"
-                else:
-                    cn_name = f"({punch.code}) N/A"
-                ptime: datetime = punch.time
-                fromstart = ptime - stime
-                split = ptime - lasttime
-
-                line(
-                    f"{cn_name}\t{format_delta(fromstart)}\t+{format_delta(split)}{f"\t {ptime.strftime("%H:%M:%S")}" if self.printer_optns.paper else ""}".expandtabs(
-                        10
-                    )
-                )
-
-                lasttime = ptime
-
-            line()
-
-            text("Výsledek: ")
-            self.printer.set(bold=True)
-            line(
-                f"{format_delta(timedelta(seconds=result.time))}, {result.tx} TX, {result.status}\n"
+        line(
+            f"{cn_name}\t{format_delta(fromstart)}\t+{format_delta(split)}".expandtabs(
+                10
             )
-            self.printer.set(bold=False)
-            if not snura:
-                self.printer.set(bold=True)
-                line("Výsledky:")
-                self.printer.set(bold=False)
+        )
 
-                for result_lp in results_cat[:3]:
-                    if result_lp.status != "OK":
-                        continue
-                    place = f"{result_lp.place}."
-                    self.printer.set(align="left")
-                    text(f"{place} {result_lp.name}{" " if self.printer_optns.paper else "\n"}")
-                    if not self.printer_optns.paper:
-                        self.printer.set(align="right")
-                    line(
-                        f"{"(" if self.printer_optns.paper else ""}{format_delta(timedelta(seconds=result_lp.time))}, {result_lp.tx} TX{")" if self.printer_optns.paper else ""}"
-                    )
+        lasttime = ptime
 
-                if result.place > 3 or result.status != "OK":
-                    self.printer.set(bold=True)
-                    place = f"{result.place}."
-                    self.printer.set(align="left")
-                    text(f"{place} {result.name}{" " if self.printer_optns.paper else "\n"}")
-                    if not self.printer_optns.paper:
-                        self.printer.set(align="right")
-                    line(
-                        f"{"(" if self.printer_optns.paper else ""}{format_delta(timedelta(seconds=result.time))}, {result.tx} TX{")" if self.printer_optns.paper else ""}"
-                    )
+    results_cat = results.calculate_category(db, runner.category.name)
+    try:
+        result = list(filter(lambda x: x.name == runner.name, results_cat))[0]
+    except:
+        return
 
-                if self.printer_optns.qr or self.printer_optns.link:
-                    self.printer.set(align="left", bold=True)
-                    line("\nŽivé výsledky:" + (" rob-is.cz/vysledky" if self.printer_optns.link else ""))
-                    if self.printer_optns.qr:
-                        self.printer.set(align="center")
-                        self.printer.qr("https://rob-is.cz/vysledky", size=5)
-                    else:
-                        line()
-                else:
-                    line()
-            else:
-                line()
+    line()
 
-            self.printer.set(align="center")
-            line("JJ ARDFEvent, (C) Jakub Jiroutek")
+    text("Výsledek: ")
+    printer.set(bold=True)
+    line(
+        f"{format_delta(timedelta(seconds=result.time))}, {result.tx} TX, {result.status}\n"
+    )
+    printer.set(bold=False)
+    if not snura:
+        printer.set(bold=True)
+        line("Výsledky:")
+        printer.set(bold=False)
 
-            if self.printer_optns.cut:
-                self.printer.cut()
-            self.printer.print_and_feed(self.printer_optns.feed)
+        for result_lp in results_cat[:3]:
+            if result_lp.status != "OK":
+                continue
+            place = f"{result_lp.place}." if result_lp.status == "OK" else "-"
+            printer.set(align="left")
+            line(f"{place} {result_lp.name}")
+            printer.set(align="right")
+            line(
+                f"{format_delta(timedelta(seconds=result_lp.time))}, {result_lp.tx} TX"
+            )
 
-            if isinstance(self.printer, Dummy):
-                print("-" * 50)
-                try:
-                    print(self.printer.output.decode("CP852"))
-                except:
-                    print(self.printer.output)
-                self.printer.clear()
+        if result.place > 3 or result.status != "OK":
+            printer.set(bold=True)
+            place = f"{result.place}."
+            printer.set(align="left")
+            line(f"{place} {result.name}")
+            printer.set(align="right")
+            line(f"{format_delta(timedelta(seconds=result.time))}, {result.tx} TX")
+            printer.set(bold=False)
 
+    printer.set(align="center")
+    line("JJ ARDFEvent, (C) Jakub Jiroutek")
 
-class PrinterOptions:
-    def __init__(self, paper, title, feed, cut, logo, link, qr):
-        self.paper: bool = paper
-        self.title: bool = title
-        self.feed: int = feed
-        self.cut: bool = cut
-        self.logo: str = logo
-        self.link: bool = link
-        self.qr: bool = qr
-
-
-class PrinterSetupDialog(QDialog):
-    def __init__(self, parent: ReadoutWindow):
-        super().__init__(parent)
-
-        self.rdowin = parent
-
-        self.setWindowTitle("Nastavení účtenkové tiskárny")
-
-        main_lay = QVBoxLayout()
-        self.setLayout(main_lay)
-
-        preset_lay = QHBoxLayout()
-        main_lay.addLayout(preset_lay)
-
-        preset_lay.addWidget(QLabel("Přednastavení:"))
-
-        epson_btn = QPushButton("Epson TM-T20III (USB)")
-        epson_btn.clicked.connect(self._epson_preset)
-        preset_lay.addWidget(epson_btn)
-
-        line2 = QFrame()
-        line2.setFrameShape(QFrame.Shape.HLine)
-        line2.setFrameShadow(QFrame.Shadow.Sunken)
-
-        main_lay.addWidget(line2)
-
-        self.noprint_optn = QRadioButton("Netisknout")
-        self.noprint_optn.setChecked(True)
-        self.noprint_optn.clicked.connect(self._toggle)
-        main_lay.addWidget(self.noprint_optn)
-
-        self.serial_optn = QRadioButton("Sériový port (COMX, /dev/ttySX nebo /dev/ttyUSBX)")
-        self.serial_optn.clicked.connect(self._toggle)
-        main_lay.addWidget(self.serial_optn)
-        self.serial_edit = QComboBox()
-        main_lay.addWidget(self.serial_edit)
-
-        self.usb_optn = QRadioButton("USB (nativní)")
-        self.usb_optn.clicked.connect(self._toggle)
-        main_lay.addWidget(self.usb_optn)
-        usb_lay = QFormLayout()
-        main_lay.addLayout(usb_lay)
-        self.usbvendor_edit = QLineEdit()
-        self.usbvendor_edit.setInputMask("HHHH")
-        usb_lay.addRow("USB výrobce (HEX)", self.usbvendor_edit)
-        self.usbmodel_edit = QLineEdit()
-        self.usbmodel_edit.setInputMask("HHHH")
-        usb_lay.addRow("USB model (HEX)", self.usbmodel_edit)
-
-        self.dummy_optn = QRadioButton("Dummy - pouze testovací")
-        self.dummy_optn.clicked.connect(self._toggle)
-        main_lay.addWidget(self.dummy_optn)
-
-        line1 = QFrame()
-        line1.setFrameShape(QFrame.Shape.HLine)
-        line1.setFrameShadow(QFrame.Shadow.Sunken)
-
-        main_lay.addWidget(line1)
-
-        set_lay = QFormLayout()
-        main_lay.addLayout(set_lay)
-
-        self.paper_edit = QComboBox()
-        self.paper_edit.addItems(["58 mm", "80 mm"])
-        set_lay.addRow("Šířka papíru", self.paper_edit)
-
-        self.feed_edit = QSpinBox()
-        self.feed_edit.setMinimum(0)
-        self.feed_edit.setMaximum(99)
-        set_lay.addRow("Feed na konci", self.feed_edit)
-
-        self.logo_lbl = QLabel()
-        logo_btn = QPushButton("Vybrat soubor...")
-        logo_btn.clicked.connect(self._logo_select)
-        set_lay.addRow("Logo do záhlaví", self.logo_lbl)
-        set_lay.addWidget(logo_btn)
-
-        self.title_check = QCheckBox("Tisknout název závodu")
-        self.title_check.setChecked(True)
-        main_lay.addWidget(self.title_check)
-
-        self.cut_check = QCheckBox("Řezat lístky (jen když to tiskárna umí)")
-        main_lay.addWidget(self.cut_check)
-
-        self.link_check = QCheckBox("Tisknout odkaz na živé výsledky na ROBis")
-        main_lay.addWidget(self.link_check)
-
-        self.qr_check = QCheckBox("Tisknout QR kód na živé výsledky na ROBis")
-        main_lay.addWidget(self.qr_check)
-
-        ok_btn = QPushButton("OK")
-        ok_btn.clicked.connect(self._ok)
-        main_lay.addWidget(ok_btn)
-
-        if os.name == "nt":
-            self.usb_optn.setEnabled(False)
-            epson_btn.setEnabled(False)
-            self.usb_optn.setText(self.usb_optn.text() + " (nedostupné na Windows)")
-
-        self._toggle()
-
-    def _logo_select(self):
-        file, ok = QFileDialog.getOpenFileName(self, "Vybrat logo", filter="Obrázek (*.jpg, *.png)")
-        if ok:
-            self.logo_lbl.setText(file)
-
-    def _ok(self):
-        if self.rdowin.printer:
-            self.rdowin.printer.close()
-
-        if self.noprint_optn.isChecked():
-            self.rdowin.printer = None
-            self.close()
-            return
-        elif self.serial_optn.isChecked():
-            self.rdowin.printer = Serial(self.serial_edit.currentText())
-        elif self.usb_optn.isChecked():
-            self.rdowin.printer = Usb(int(self.usbvendor_edit.text(), 16), int(self.usbmodel_edit.text(), 16))
-        elif self.dummy_optn.isChecked():
-            self.rdowin.printer = Dummy()
-
-        self.rdowin.printer.charcode("CP852")
-
-        self.rdowin.printer_optns = PrinterOptions(self.paper_edit.currentText() == "80 mm",
-                                                   self.title_check.isChecked(), self.feed_edit.value(),
-                                                   self.cut_check.isChecked(), self.logo_lbl.text(),
-                                                   self.link_check.isChecked(), self.qr_check.isChecked())
-        
-        self.rdowin.printer.textln("Zde tisknu!")
-        self.rdowin.printer.print_and_feed(self.feed_edit.value())
-        if self.cut_check.isChecked():
-            self.rdowin.printer.cut()
-        self.close()
-
-    def _epson_preset(self):
-        self.usb_optn.setChecked(True)
-        self._toggle()
-        self.usbvendor_edit.setText("04b8")
-        self.usbmodel_edit.setText("0e28")
-        self.paper_edit.setCurrentIndex(1)
-        self.feed_edit.setValue(1)
-        self.cut_check.setChecked(True)
-
-    def exec(self):
-        self.serial_edit.clear()
-        self.serial_edit.addItems([p.device for p in comports()[::-1]])
-        super().exec()
-
-    def _toggle(self):
-        self.serial_edit.setEnabled(self.serial_optn.isChecked())
-        self.usbvendor_edit.setEnabled(self.usb_optn.isChecked())
-        self.usbmodel_edit.setEnabled(self.usb_optn.isChecked())
-
-
-class InForestThread(QThread):
-    def __init__(self, parent):
-        super().__init__(parent)
-
-    def run(self):
-        self.parent().runners.emit()
-        time.sleep(30.0 - (time.time() % 30.0))
-        while True:
-            self.parent().runners.emit()
-            time.sleep(1)
+    printer.print_and_feed(4)
+    sess.close()
 
 
 class ReadoutStatusWindow(QWidget):
-    runners = Signal()
-
-    def __init__(self, mw):
+    def __init__(self):
         super().__init__()
         self.setWindowTitle("JJ ARDFEvent - Stav vyčítání")
         self.setWindowFlags(Qt.WindowStaysOnTopHint)
-
-        self.mw = mw
-
-        self.upd_thr = None
 
         layout = QVBoxLayout()
         self.setLayout(layout)
@@ -660,11 +448,9 @@ class ReadoutStatusWindow(QWidget):
         self.mainstate_label = QLabel()
         layout.addWidget(self.mainstate_label)
 
-        last_label = QLabel("\nNaposledy vyčtený závodník:")
-        last_label.setStyleSheet("QLabel { font-weight: bold; }")
-        layout.addWidget(last_label)
+        layout.addWidget(QLabel("\nNaposledy vyčtený závodník:"))
 
-        self.runner_label = QLabel("Nic nevyčteno :(")
+        self.runner_label = QLabel()
         layout.addWidget(self.runner_label)
 
         self.time_label = QLabel()
@@ -673,82 +459,20 @@ class ReadoutStatusWindow(QWidget):
         self.error_label = QLabel()
         layout.addWidget(self.error_label)
 
-        people_layout = QHBoxLayout()
-        layout.addLayout(people_layout)
-
-        self.inforest_label = QLabel("0")
-        self.inforest_label.setStyleSheet(
-            "QLabel { background-color: red; color: white; padding: 5px; font-size: 50px; }")
-        self.inforest_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        people_layout.addWidget(self.inforest_label)
-
-        self.finished_label = QLabel("0")
-        self.finished_label.setStyleSheet(
-            "QLabel { background-color: green; color: white; padding: 5px; font-size: 50px; }")
-        self.finished_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        people_layout.addWidget(self.finished_label)
-
-        self.not_started = QLabel("0")
-        self.not_started.setStyleSheet(
-            "QLabel { background-color: yellow; color: black; padding: 5px; font-size: 50px; }")
-        self.not_started.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        people_layout.addWidget(self.not_started)
-
         self.effect = QSoundEffect()
         self.effect.setSource(QUrl.fromLocalFile(":/sound/error.wav"))
         self.effect.setLoopCount(-2)
         self.effect.setVolume(1.0)
 
-        self.runners.connect(self._set_counts)
-
         self.set_error(None)
 
-    def show(self):
-        super().show()
-        self.upd_thr = InForestThread(self)
-        self.upd_thr.start()
-
-    def stop(self):
-        self.upd_thr.terminate()
-        self.upd_thr = None
-
-    def _set_counts(self):
-        with Session(self.mw.db) as sess:
-            now = datetime.now()
-            in_forest = sess.scalars(
-                Select(Runner)
-                .where(~Runner.manual_dns)
-                .where(~Runner.manual_disk)
-                .where(Runner.si.not_in(Select(Punch.si)))
-                .where(Runner.startlist_time < now)
-            ).all()
-
-            finished = sess.scalars(
-                Select(Runner)
-                .where(~Runner.manual_dns)
-                .where(~Runner.manual_disk)
-                .where(Runner.si.in_(Select(Punch.si)))
-            ).all()
-
-            not_started_yet = sess.scalars(
-                Select(Runner)
-                .where(~Runner.manual_dns)
-                .where(~Runner.manual_disk)
-                .where(Runner.startlist_time > now)
-            ).all()
-
-            self.inforest_label.setText(f"{len(in_forest)}")
-            self.finished_label.setText(f"{len(finished)}")
-            self.not_started.setText(f"{len(not_started_yet)}")
-
-    def set_ports(self, si: str):
-        self.mainstate_label.setText(f"Stav: Aktivní, SI: {si}")
+    def set_ports(self, si: str, printer: str):
+        self.mainstate_label.setText(f"Stav: Aktivní, SI: {si}, tiskárna: {printer}")
         self.mainstate_label.setStyleSheet("color: green;")
 
     def set_runner(self, runner: str):
         self.runner_label.setText(runner)
         self.time_label.setText(f"Vyčten v: {datetime.now().strftime("%H:%M:%S")}")
-        self._set_counts()
 
     def set_error(self, error: str | None):
         if error:

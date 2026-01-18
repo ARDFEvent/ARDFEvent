@@ -1,17 +1,17 @@
-from sqlalchemy import Delete, Select
 from sqlalchemy.orm import Session
+from sqlalchemy import Delete, Select
 
 from models import Runner, Category
 
 
 class RunnerToImport:
     def __init__(
-            self,
-            name: str,
-            reg: str,
-            si: int,
-            category_name: str,
-            call: str,
+        self,
+        name: str,
+        reg: str,
+        si: int,
+        category_name: str,
+        call: str,
     ) -> None:
         self.name = name
         self.reg = reg
@@ -37,7 +37,7 @@ def import_runners(db, data: list[RunnerToImport], clubs: dict[str, str]):
         ).all()
         if not categories:
             yield (2, runner)
-            category = Category(name=runner.category_name, display_controls="")
+            category = Category(name=runner.category_name)
             sess.add(category)
         else:
             category = categories[0]

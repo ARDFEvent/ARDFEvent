@@ -1,4 +1,4 @@
-from PySide6.QtCore import Qt, QCoreApplication
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
@@ -12,7 +12,6 @@ from sqlalchemy import Delete, Select
 from sqlalchemy.orm import Session
 
 from models import Control
-from ui.qtaiconbutton import QTAIconButton
 
 
 class ControlsWindow(QWidget):
@@ -20,55 +19,46 @@ class ControlsWindow(QWidget):
         super().__init__()
 
         self.mw = mw
+        self.setWindowTitle("Kontroly")
 
         mainlay = QVBoxLayout()
         self.setLayout(mainlay)
 
-        btnlay = QHBoxLayout()
-        mainlay.addLayout(btnlay)
+        mainlay.addWidget(QLabel("Přednastavené kontroly:"))
 
-        self.add_btn = QTAIconButton("mdi6.access-point-plus",
-                                     QCoreApplication.translate("ControlsWindow", "Přidat"))
-        self.add_btn.clicked.connect(self._new_control)
-        btnlay.addWidget(self.add_btn)
+        presetslay = QHBoxLayout()
+        mainlay.addLayout(presetslay)
 
-        self.delete_btn = QTAIconButton("mdi6.access-point-minus",
-                                        QCoreApplication.translate("ControlsWindow", "Smazat"))
-        self.delete_btn.clicked.connect(self._delete)
-        btnlay.addWidget(self.delete_btn)
+        slowcontrols_preset = QPushButton("Pomalé kontroly (1-5 + M)")
+        slowcontrols_preset.clicked.connect(self._preset_slow)
+        presetslay.addWidget(slowcontrols_preset)
 
-        self.save_btn = QTAIconButton("mdi6.content-save-outline",
-                                      QCoreApplication.translate("ControlsWindow", "Uložit"))
-        self.save_btn.clicked.connect(self._save)
-        btnlay.addWidget(self.save_btn)
+        allcontrols_preset = QPushButton("Všechny kontroly (1-5 + R1-R5 + M)")
+        allcontrols_preset.clicked.connect(self._preset_all)
+        presetslay.addWidget(allcontrols_preset)
 
-        btnlay.addStretch()
+        sprint_preset = QPushButton("Sprint (1-5 + S + R1-R5 + M)")
+        sprint_preset.clicked.connect(self._preset_sprint)
+        presetslay.addWidget(sprint_preset)
 
-        btnlay.addWidget(QLabel(QCoreApplication.translate("ControlsWindow", "Předvolby:")))
+        operationslay = QHBoxLayout()
+        mainlay.addLayout(operationslay)
 
-        self.slowcontrols_preset = QPushButton(
-            QCoreApplication.translate("ControlsWindow", "1-5 + M"))
-        self.slowcontrols_preset.clicked.connect(self._preset_slow)
-        btnlay.addWidget(self.slowcontrols_preset)
+        add_btn = QPushButton("Přidat")
+        add_btn.clicked.connect(self._new_control)
+        operationslay.addWidget(add_btn)
 
-        self.allcontrols_preset = QPushButton(
-            QCoreApplication.translate("ControlsWindow", "1-5 + R1-R5 + M"))
-        self.allcontrols_preset.clicked.connect(self._preset_all)
-        btnlay.addWidget(self.allcontrols_preset)
+        save_btn = QPushButton("Uložit")
+        save_btn.clicked.connect(self._save)
+        operationslay.addWidget(save_btn)
 
-        self.sprint_preset = QPushButton(QCoreApplication.translate("ControlsWindow", "1-5 + S + R1-R5 + M"))
-        self.sprint_preset.clicked.connect(self._preset_sprint)
-        btnlay.addWidget(self.sprint_preset)
+        delete_btn = QPushButton("Smazat")
+        delete_btn.clicked.connect(self._delete)
+        operationslay.addWidget(delete_btn)
 
         self.table = QTableWidget()
-        self.table.verticalHeader().hide()
-        self.table.setColumnCount(6)
-        self.table.setHorizontalHeaderLabels([QCoreApplication.translate("ControlsWindow", "Jméno"),
-                                              QCoreApplication.translate("ControlsWindow", "SI kód"),
-                                              QCoreApplication.translate("ControlsWindow", "Povinná"),
-                                              QCoreApplication.translate("ControlsWindow", "Divácká"),
-                                              QCoreApplication.translate("ControlsWindow", "Z. šířka"),
-                                              QCoreApplication.translate("ControlsWindow", "Z. délka")])
+        self.table.setColumnCount(4)
+        self.table.setHorizontalHeaderLabels(["Jméno", "SI kód", "Povinná", "Divácká"])
         self.table.itemClicked.connect(self._set_last)
 
         mainlay.addWidget(self.table, 1)
@@ -82,10 +72,11 @@ class ControlsWindow(QWidget):
         self.table.removeRow(self.last_selected.row())
 
     def _set_controls(self, controls):
-        with Session(self.mw.db) as sess:
-            sess.execute(Delete(Control))
-            sess.add_all(controls)
-            sess.commit()
+        sess = Session(self.mw.db)
+        sess.execute(Delete(Control))
+        sess.add_all(controls)
+        sess.commit()
+        sess.close()
 
     def _preset_slow(self):
         self._set_controls(
@@ -95,7 +86,7 @@ class ControlsWindow(QWidget):
                 Control(name="3", code=33, mandatory=False, spectator=False),
                 Control(name="4", code=34, mandatory=False, spectator=False),
                 Control(name="5", code=35, mandatory=False, spectator=False),
-                Control(name="M", code=99, mandatory=False, spectator=False),
+                Control(name="M", code=99, mandatory=True, spectator=False),
             ]
         )
         self._update_table()
@@ -113,7 +104,7 @@ class ControlsWindow(QWidget):
                 Control(name="R3", code=43, mandatory=False, spectator=False),
                 Control(name="R4", code=44, mandatory=False, spectator=False),
                 Control(name="R5", code=45, mandatory=False, spectator=False),
-                Control(name="M", code=99, mandatory=False, spectator=False),
+                Control(name="M", code=99, mandatory=True, spectator=False),
             ]
         )
         self._update_table()
@@ -131,8 +122,8 @@ class ControlsWindow(QWidget):
                 Control(name="R3", code=43, mandatory=False, spectator=False),
                 Control(name="R4", code=44, mandatory=False, spectator=False),
                 Control(name="R5", code=45, mandatory=False, spectator=False),
-                Control(name="S", code=46, mandatory=False, spectator=True),
-                Control(name="M", code=99, mandatory=False, spectator=False),
+                Control(name="S", code=46, mandatory=True, spectator=True),
+                Control(name="M", code=99, mandatory=True, spectator=False),
             ]
         )
         self._update_table()
@@ -151,11 +142,8 @@ class ControlsWindow(QWidget):
                 code = -1
             mandatory = self.table.item(i, 2).checkState() == Qt.CheckState.Checked
             spectator = self.table.item(i, 3).checkState() == Qt.CheckState.Checked
-            lat = None if self.table.item(i, 4).text() == "" else float(self.table.item(i, 4).text())
-            lon = None if self.table.item(i, 5).text() == "" else float(self.table.item(i, 5).text())
-
             controls.append(
-                Control(name=name, code=code, mandatory=mandatory, spectator=spectator, lat=lat, lon=lon)
+                Control(name=name, code=code, mandatory=mandatory, spectator=spectator)
             )
 
         self._set_controls(controls)
@@ -205,24 +193,18 @@ class ControlsWindow(QWidget):
 
         self.table.setItem(i, 3, it_spectator)
 
-        it_lat = QTableWidgetItem(str(control.lat or ""))
-        it_lat.setFlags(Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsEnabled)
-        self.table.setItem(i, 4, it_lat)
-
-        it_lon = QTableWidgetItem(str(control.lon or ""))
-        it_lon.setFlags(Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsEnabled)
-        self.table.setItem(i, 5, it_lon)
-
     def _update_table(self):
-        with Session(self.mw.db) as sess:
-            controls = sess.scalars(Select(Control)).all()
+        sess = Session(self.mw.db)
+        controls = sess.scalars(Select(Control)).all()
 
-            self.table.setRowCount(0)
+        self.table.setRowCount(0)
 
-            i = 0
-            for control in controls:
-                self._add_control(control, i)
-                i += 1
+        i = 0
+        for control in controls:
+            self._add_control(control, i)
+            i += 1
+
+        sess.close()
 
     def _show(self):
         self._update_table()
