@@ -12,3 +12,4 @@ pyvenv.cfg
 *.qm
 Output
 src/ui/resources*
+site

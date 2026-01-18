@@ -27,7 +27,9 @@ a = Analysis(
     runtime_hooks=[],
     excludes=['PySide6.Qt3D',
         'PySide6.QtQuick',
-        'PySide6.QtQml'],
+        'PySide6.QtQml',
+        'PySide6.QtWebEngineCore'
+        'PySide6.QtWebEngineWidgets'],
     noarchive=False,
     optimize=0,
 )
