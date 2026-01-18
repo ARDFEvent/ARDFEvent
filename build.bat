@@ -2,6 +2,7 @@
 setlocal
 
 echo Cleanup...
+del /F /Q "i18n\ARDFEvent_en.qm" 2>nul
 del /F /Q "src\ui\resources.py" 2>nul
 del /F /Q "src\ui\resources_init.py" 2>nul
 
@@ -33,6 +34,9 @@ echo Build and install results module using maturin
 maturin develop --release
 
 popd
+
+echo Build language files using pyside6-lrelease
+pyside6-lrelease i18n\ARDFEvent_en.ts
 
 echo Build resource files using pyside6-rcc
 pyside6-rcc resource.qrc -o src\ui\resources.py
