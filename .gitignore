@@ -13,3 +13,5 @@ pyvenv.cfg
 Output
 src/ui/resources*
 site
+.gemini/
+gha-creds-*.json
