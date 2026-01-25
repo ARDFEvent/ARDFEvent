@@ -12,3 +12,6 @@ pyvenv.cfg
 *.qm
 Output
 src/ui/resources*
+site
+.gemini/
+gha-creds-*.json

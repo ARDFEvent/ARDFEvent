@@ -1,6 +1,6 @@
 from PySide6.QtCore import QCoreApplication
-from PySide6.QtWebEngineWidgets import QWebEngineView
-from PySide6.QtWidgets import QFileDialog, QPushButton, QVBoxLayout, QWidget
+from PySide6.QtGui import QPalette, QColor
+from PySide6.QtWidgets import QFileDialog, QPushButton, QVBoxLayout, QWidget, QTextBrowser, QLabel
 
 
 class PreviewWindow(QWidget):
@@ -14,15 +14,21 @@ class PreviewWindow(QWidget):
         lay = QVBoxLayout()
         self.setLayout(lay)
 
+        lay.addWidget(QLabel("Náhled je pouze orientační. Neodpovídá zejména přesné rozložení na stránce."))
+
         self.export_btn = QPushButton(QCoreApplication.translate("PreviewWindow", "Exportovat"))
         self.export_btn.clicked.connect(self._export)
         lay.addWidget(self.export_btn)
 
-        self.webview = QWebEngineView()
-        self.webview.setHtml(html)
-        lay.addWidget(self.webview)
+        self.txtbrs = QTextBrowser()
+        self.txtbrs.setHtml(html)
+        palette = self.txtbrs.palette()
+        palette.setColor(QPalette.Base, QColor("white"))
+        palette.setColor(QPalette.Text, QColor("black"))
+        self.txtbrs.setPalette(palette)
+        lay.addWidget(self.txtbrs)
 
-        self.show()
+        self.showMaximized()
 
     def _export(self):
         fn = QFileDialog.getSaveFileName(

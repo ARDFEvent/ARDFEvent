@@ -30,7 +30,7 @@ class RaceLine(QWidget):
         self.db = sqlalchemy.create_engine(f"sqlite:///{file}", max_overflow=-1)
 
         name = api.get_basic_info(self.db)["name"]
-        date = datetime.fromisoformat(api.get_basic_info(self.db)["date_tzero"])
+        self.date = datetime.fromisoformat(api.get_basic_info(self.db)["date_tzero"])
 
         lay = QVBoxLayout()
         self.setLayout(lay)
@@ -38,7 +38,7 @@ class RaceLine(QWidget):
         det_lay = QHBoxLayout()
         lay.addLayout(det_lay)
 
-        det_lay.addWidget(QLabel(date.strftime('%d.%m.%Y %H:%M')))
+        det_lay.addWidget(QLabel(self.date.strftime('%d.%m.%Y %H:%M')))
         det_lay.addStretch()
 
         fn_lbl = QLabel(file.name)
@@ -127,11 +127,14 @@ class WelcomeWindow(QWidget):
         lay.addWidget(self.races_scroll)
 
     def _load_races(self):
+        race_lines = []
         for file in (Path.home() / ".ardfevent").glob("*.sqlite"):
             try:
-                self.races_lay.addWidget(RaceLine(file, self))
+                race_lines.append(RaceLine(file, self))
             except:
                 ...
+        for line in sorted(race_lines, key=lambda x: x.date, reverse=True):
+            self.races_lay.addWidget(line)
         self.setMinimumWidth(self.races_list.sizeHint().width() + 37)
 
     def _new_race(self):
