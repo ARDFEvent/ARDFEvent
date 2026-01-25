@@ -5,7 +5,7 @@ from sqlalchemy import create_engine
 
 import api
 from models import Base
-from ui.mainwin import MainWindow
+from ui.mainwin import MainWindow, RaceWindow
 
 
 @pytest.fixture(autouse=True)
@@ -20,27 +20,11 @@ def patch_basic_info(monkeypatch):
     yield
 
 
-def test_show_window_shows_and_sets_title(qtbot, tmp_path):
-    win = MainWindow()
-    qtbot.addWidget(win)
-
-    dbfile = tmp_path / "test_mainwin.db"
-    Base.metadata.create_all(create_engine(f"sqlite:///{dbfile}"))
-    win.show(f"sqlite:///{dbfile}")
-    qtbot.waitExposed(win)
-
-    assert win.isVisible()
-    assert "JJ ARDFEvent - TestRace" in win.windowTitle()
-    assert win.stack.count() > 0
-    assert win.stack.currentIndex() == 0
-
-
 def test_sidebar_buttons_exist_and_switch_pages(qtbot, tmp_path):
-    win = MainWindow()
-    qtbot.addWidget(win)
     dbfile = tmp_path / "test_mainwin.db"
     Base.metadata.create_all(create_engine(f"sqlite:///{dbfile}"))
-    win.show(f"sqlite:///{dbfile}")
+    win = RaceWindow(f"sqlite:///{dbfile}")
+    qtbot.addWidget(win)
     qtbot.waitExposed(win)
 
     buttons = [b for b in win.sidebar.findChildren(QToolButton)]

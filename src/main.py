@@ -2,10 +2,10 @@ import os
 import sys
 import warnings
 
+import certifi
 from PySide6.QtCore import Qt, QCoreApplication, QTranslator, QLocale
 from PySide6.QtGui import QPixmap, QFontDatabase
 from PySide6.QtWidgets import QApplication, QSplashScreen, QWizard
-import certifi
 
 import api
 import pluginmanager
@@ -148,6 +148,6 @@ if __name__ == "__main__":
 
         sys.exit(0)
 
-    win.welcomewin.show()
+    win.showMaximized()
 
     app.exec()
