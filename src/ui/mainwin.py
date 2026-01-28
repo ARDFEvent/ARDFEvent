@@ -4,17 +4,16 @@ from pathlib import Path
 
 import qtawesome as qta
 import sqlalchemy
-from PySide6.QtCore import QCoreApplication, QSize
-from PySide6.QtCore import Qt
+from PySide6.QtCore import QCoreApplication, QSize, Qt
 from PySide6.QtGui import QIcon, QKeySequence, QShortcut
 from PySide6.QtWidgets import (
     QHBoxLayout,
     QStackedWidget,
     QWidget,
     QToolButton,
-    QLabel,
     QVBoxLayout,
-    QButtonGroup, QMainWindow, QFileDialog, )
+    QButtonGroup, QMainWindow, QFileDialog, QPushButton, QSizePolicy,
+)
 
 import api
 import models
@@ -112,11 +111,12 @@ class MainWindow(QMainWindow):
         ph_layout = QVBoxLayout(self._placeholder)
         ph_layout.setContentsMargins(0, 0, 0, 0)
         ph_layout.setSpacing(0)
-        ph_label = QLabel(QCoreApplication.translate("MainWindow", "Otevřete závod..."), self._placeholder)
-        ph_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        ph_label.setStyleSheet("font-size: 32pt; font-weight: bold;")
+        ph_btn = QPushButton(QCoreApplication.translate("MainWindow", "Otevřete závod..."), self._placeholder)
+        ph_btn.clicked.connect(self._open)
+        ph_btn.setStyleSheet("font-size: 32pt; font-weight: bold; padding: 32px;")
+        ph_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         ph_layout.addStretch(1)
-        ph_layout.addWidget(ph_label)
+        ph_layout.addWidget(ph_btn, alignment=Qt.AlignmentFlag.AlignHCenter)
         ph_layout.addStretch(1)
         self.setCentralWidget(self._placeholder)
 
@@ -127,8 +127,8 @@ class MainWindow(QMainWindow):
     def _update_last_menu(self):
         self.last_menu.clear()
         last = json.loads(api.get_config_value("last_opened", "[]"))
-        for file in last:
-            action = self.last_menu.addAction(file)
+        for i, file in enumerate(last):
+            action = self.last_menu.addAction(f"{i + 1}: {file}")
             action.triggered.connect(lambda checked=False, f=file: self._open(dbstr=f))
 
     def _new(self):
@@ -213,7 +213,7 @@ class RaceWindow(QWidget):
             self.db = sqlalchemy.create_engine(dbstr)
 
         models.Base.metadata.create_all(self.db)
-        
+
         self.basicinfo_win = basicinfowin.BasicInfoWindow(self)
         self.controls_win = controlswin.ControlsWindow(self)
         self.categories_win = categorieswin.CategoriesWindow(self)
@@ -303,6 +303,7 @@ class RaceWindow(QWidget):
             try:
                 btn.clicked.connect(lambda checked=False, i=idx: self._on_sidebar_button_clicked(i))
                 try:
+                    seq = None
                     if 0 <= idx <= 9:
                         seq = f"Alt+{(idx + 1) % 10}"
                         sc = QShortcut(QKeySequence(seq), self)
@@ -314,7 +315,8 @@ class RaceWindow(QWidget):
                         sc = QShortcut(QKeySequence(seq), self)
                         sc.activated.connect(lambda i=idx: self._on_sidebar_button_clicked(i))
                         self._shortcuts.append(sc)
-                    btn.setToolTip(f"{label} ({seq})")
+                    if seq:
+                        btn.setToolTip(f"{label} ({seq})")
                 except Exception:
                     pass
             except:

@@ -49,7 +49,7 @@ class StartlistWindow(QWidget):
 
         draw_win_btn = QTAIconButton("mdi6.dice-multiple-outline",
                                      QCoreApplication.translate("StartListWindow", "Losovat startovku"))
-        draw_win_btn.clicked.connect(self.mw.startlistdraw_win.setup_win.show)
+        draw_win_btn.clicked.connect(self.mw.startlistdraw_win.show)
         btn_lay.addWidget(draw_win_btn)
 
         startno_win_btn = QTAIconButton("mdi6.numeric-1-box-multiple-outline",
