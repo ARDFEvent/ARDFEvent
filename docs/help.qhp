@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<QtHelpProject version="1.0">
+    <namespace>cz.ARDFEvent.help</namespace>
+    <virtualFolder>doc</virtualFolder>
+    <filterSection>
+        <toc>
+            <section title="My Wiki Help" ref="Home.html">
+                </section>
+        </toc>
+        <keywords>
+            <keyword name="home" ref="Home.html"/>
+        </keywords>
+        <files>
+            <file>help_html/*.html</file>
+            <file>help_html/img/*</file>
+        </files>
+    </filterSection>
+</QtHelpProject>
