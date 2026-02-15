@@ -16,3 +16,4 @@ maturin==1.11.5
 qtawesome==1.4.0
 pytest
 pytest-qt
+gdal

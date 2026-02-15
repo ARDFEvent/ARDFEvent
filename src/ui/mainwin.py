@@ -30,7 +30,7 @@ from ui import (
     startlistdrawwin,
     startlistwin,
     experimentalwin,
-    startnowin,
+    startnowin, mapwin
 )
 from ui.pluginmanagerwin import PluginManagerWindow
 
@@ -214,6 +214,8 @@ class RaceWindow(QWidget):
 
         models.Base.metadata.create_all(self.db)
 
+        api.migrate_basic_info(self.db)
+
         self.basicinfo_win = basicinfowin.BasicInfoWindow(self)
         self.controls_win = controlswin.ControlsWindow(self)
         self.categories_win = categorieswin.CategoriesWindow(self)
@@ -226,6 +228,7 @@ class RaceWindow(QWidget):
         self.startlist_win = startlistwin.StartlistWindow(self)
         self.ochecklist_win = ochecklistwin.OCheckListWindow(self)
         self.inforest_win = runnersinforestwin.RunnersInForestWindow(self)
+        self.map_win = mapwin.MapWindow(self)
         self.experimental_win = experimentalwin.ExperimentalWindow(self)
 
         self.windows = [
@@ -241,6 +244,7 @@ class RaceWindow(QWidget):
             self.startlist_win,
             self.ochecklist_win,
             self.inforest_win,
+            self.map_win,
             self.experimental_win,
         ]
 
@@ -271,6 +275,8 @@ class RaceWindow(QWidget):
                       qta.icon("mdi6.trophy-outline"))
         self.add_page(self.inforest_win, QCoreApplication.translate("MainWindow", "Závodníci v lese"),
                       qta.icon("mdi6.pine-tree-variant-outline"))
+        self.add_page(self.map_win, QCoreApplication.translate("MainWindow", "Mapa"),
+                      qta.icon("mdi6.map-outline"))
         self.add_page(self.experimental_win, QCoreApplication.translate("MainWindow", "Experimentální"),
                       qta.icon("mdi6.flask"))
 

@@ -16,9 +16,7 @@ if MODE == "py":
     from py_results import calculate_category, Result
 elif MODE == "rust":
     # noinspection PyUnresolvedReferences
-    from rust_results import calculate_category as calculate_category_raw
-    # noinspection PyUnresolvedReferences
-    from rust_results import OResult as Result
+    from ardfevent_rust.results import calculate_category as calculate_category_raw, OResult as Result
 
 
     def calculate_category(db: Engine, name: str, include_unknown: bool = False):

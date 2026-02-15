@@ -1,10 +1,10 @@
 import json
 from pathlib import Path
 
-from sqlalchemy import Engine, Select
+from sqlalchemy import Engine, Select, Update
 from sqlalchemy.orm import Session
 
-from models import BasicInfo, Runner
+from models import BasicInfo, Runner, Control
 
 BI_TEMPLATE = {
     "name": "NAME",
@@ -18,22 +18,23 @@ BI_TEMPLATE = {
 }
 
 BANDS = ["2m", "80m", "kombinované"]
-
 CONFIG_PATH = Path.home() / ".ardfevent" / "config.json"
+
+
+def migrate_basic_info(database: Engine):
+    with Session(database) as sess:
+        for new, old in BI_TEMPLATE.items():
+            sess.execute(Update(BasicInfo).where(BasicInfo.key == old).values(key=new))
+
+        sess.commit()
 
 
 def get_basic_info(database: Engine):
     with Session(database) as sess:
         result = {}
-
-        for key in BI_TEMPLATE:
-            val = sess.scalars(
-                Select(BasicInfo).where(BasicInfo.key == BI_TEMPLATE[key])
-            ).one_or_none()
-            if val:
-                result[key] = val.value
-            else:
-                result[key] = None
+        bi = sess.scalars(Select(BasicInfo)).all()
+        for val in bi:
+            result[val.key] = val.value
 
         return result
 
@@ -41,16 +42,14 @@ def get_basic_info(database: Engine):
 def set_basic_info(database: Engine, data: dict):
     with Session(database) as sess:
         for key in data:
-            if not key in BI_TEMPLATE.keys():
-                continue
-
             val: BasicInfo | None = sess.scalars(
-                Select(BasicInfo).where(BasicInfo.key == BI_TEMPLATE[key])
+                Select(BasicInfo).where(BasicInfo.key == key)
             ).one_or_none()
             if val:
                 val.value = data[key]
             else:
-                sess.add(BasicInfo(key=BI_TEMPLATE[key], value=data[key]))
+                print("Added", key, data[key])
+                sess.add(BasicInfo(key=key, value=data[key]))
 
         sess.commit()
 
@@ -106,3 +105,26 @@ def renumber_runners(database: Engine):
                 runners_dict[runner.name] = 0
 
         sess.commit()
+
+
+def sort_controls(controls: list[Control]) -> list[Control]:
+    def sort_key(control: Control) -> tuple[int, str]:
+        if control.name in ["M", "B"]:
+            return 99998, control.name
+        if control.name in ["S", "D"]:
+            return 99997, control.name
+        if "R" in control.name or "F" in control.name:
+            try:
+                return int(control.name.strip("RF")), control.name
+            except ValueError:
+                ...
+        try:
+            return int(control.name), control.name
+        except ValueError:
+            return 99999, control.name
+
+    return sorted(controls, key=sort_key)
+
+
+def get_starts_finishes(db: Engine):
+    return json.loads(get_basic_info(db).get("map_starts_finishes", '{"categories": {}, "starts": [], "finishes": []}'))

@@ -7,10 +7,12 @@ from PySide6.QtWidgets import (
     QListWidget,
     QListWidgetItem,
     QVBoxLayout,
-    QWidget, )
+    QWidget, QLabel, )
 from sqlalchemy import Delete, Select
 from sqlalchemy.orm import Session
 
+import api
+import routes
 from models import Category, Control, Runner
 from ui.qtaiconbutton import QTAIconButton
 
@@ -56,12 +58,8 @@ class CategoriesWindow(QWidget):
         self.name_edit.textEdited.connect(self._change)
         detailslay.addRow(QCoreApplication.translate("CategoriesWindow", "Jméno"), self.name_edit)
 
-        self.display_controls_edit = QLineEdit()
-        self.display_controls_edit.textEdited.connect(self._change)
-        detailslay.addRow(
-            QCoreApplication.translate("CategoriesWindow", "Kontroly ve startovce"),
-            self.display_controls_edit,
-        )
+        self.length_lbl = QLabel("")
+        detailslay.addRow(QCoreApplication.translate("CategoriesWindow", "Délka"), self.length_lbl)
 
         listslayout = QHBoxLayout()
         rightlay.addLayout(listslayout)
@@ -86,6 +84,8 @@ class CategoriesWindow(QWidget):
                 break
 
         name = category.name
+
+        category.controls = api.sort_controls(category.controls)
 
         sess.commit()
         sess.close()
@@ -149,13 +149,15 @@ class CategoriesWindow(QWidget):
             self.selected = category.id
 
             self.name_edit.setText(category.name)
-            self.display_controls_edit.setText(category.display_controls)
+            category.controls = api.sort_controls(category.controls)
 
             for control in sess.scalars(Select(Control)).all():
                 self.avail_list.addItem(QListWidgetItem(control.name))
 
             for control in category.controls:
                 self.course_list.addItem(QListWidgetItem(control.name))
+
+            self.length_lbl.setText(routes.get_lenght_str(self.mw.db, category.name))
         except:
             ...
 
@@ -171,7 +173,7 @@ class CategoriesWindow(QWidget):
             return
 
         category.name = self.name_edit.text()
-        category.display_controls = self.display_controls_edit.text()
+        category.controls = api.sort_controls(category.controls)
 
         sess.commit()
         sess.close()
@@ -195,8 +197,7 @@ class CategoriesWindow(QWidget):
         category.controls.append(control)
 
         name = category.name
-
-        category.display_controls = ", ".join(map(lambda x: x.name, category.controls))
+        category.controls = api.sort_controls(category.controls)
 
         sess.commit()
         sess.close()

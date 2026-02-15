@@ -1,0 +1,9 @@
+class Point:
+    id: int
+    lat: float
+    lon: float
+
+    def __init__(self, id: int, lat: float, lon: float) -> None: ...
+
+def point_dist(p1: Point, p2: Point) -> float: ...
+def optimal_route(points: list[Point]) -> tuple[list[int], float]: ...

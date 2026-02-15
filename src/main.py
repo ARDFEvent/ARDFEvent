@@ -1,3 +1,7 @@
+import faulthandler
+
+faulthandler.enable()
+
 import os
 import sys
 import warnings
@@ -26,6 +30,8 @@ if __name__ == "__main__":
     QApplication.setAttribute(Qt.AA_ShareOpenGLContexts)
 
     app = QApplication()
+    app.setApplicationName("ARDFEvent")
+    app.setOrganizationName("JJ")
     app.setWindowIcon(QPixmap(":/icons/icon.ico"))
 
     pixmap = QPixmap(":/icons/splash.png")
