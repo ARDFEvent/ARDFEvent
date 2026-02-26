@@ -1,0 +1,6 @@
+[submodule "plugins/robis"]
+	path = plugins/robis
+	url = ssh://git@github.com/ARDFEvent/robisplugin
+[submodule "plugins/stages"]
+	path = plugins/stages
+	url = ssh://git@github.com/ARDFEvent/stagesplugin

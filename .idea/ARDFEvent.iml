@@ -19,4 +19,12 @@
   <component name="ReSTService">
     <option name="DOC_DIR" value="$MODULE_DIR$/docs/docs_build" />
   </component>
+  <component name="TemplatesService">
+    <option name="TEMPLATE_CONFIGURATION" value="Jinja2" />
+    <option name="TEMPLATE_FOLDERS">
+      <list>
+        <option value="$MODULE_DIR$/src/exports/templates" />
+      </list>
+    </option>
+  </component>
 </module>
