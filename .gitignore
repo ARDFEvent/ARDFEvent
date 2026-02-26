@@ -16,3 +16,4 @@ src/ui/resources*
 site
 .gemini/
 gha-creds-*.json
+sign_plugins.fish
