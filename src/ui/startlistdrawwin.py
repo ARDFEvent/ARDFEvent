@@ -22,7 +22,7 @@ HEADER_HEIGHT = 20
 
 
 class DrawClassDetailWindow(QWidget):
-    def __init__(self, draw_class: DrawClass):
+    def __init__(self, draw_class):
         super().__init__()
 
         self.draw_class = draw_class
@@ -53,7 +53,7 @@ class DrawClassDetailWindow(QWidget):
 
 
 class DrawClass(QGraphicsRectItem):
-    def __init__(self, name, runners, scene: TimetableScene):
+    def __init__(self, name, runners, scene):
         super().__init__()
 
         self._runners = runners
@@ -186,7 +186,7 @@ class TimetableScene(QGraphicsScene):
         for j in range(0, all_minutes + 1, FIVE_MINUTES):
             self.addLine(j, 0, j, all_lines, pen)
 
-    def addClass(self, cls: DrawClass, i):
+    def addClass(self, cls, i):
         self.addItem(cls)
         self.classes.append(cls)
 
@@ -309,7 +309,7 @@ class StartlistDrawWindow(QWidget):
 
 
 class TimetableView(QGraphicsView):
-    def __init__(self, owner_window: StartlistDrawWindow):
+    def __init__(self, owner_window):
         super().__init__()
         self.owner = owner_window
 
