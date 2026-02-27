@@ -16,4 +16,4 @@ maturin==1.11.5
 qtawesome==1.4.0
 pytest
 pytest-qt
-gdal
+# THERE IS NO GDAL, INSTALL IT BY YOUR VERSION OF GDAL ON THIS SYSTEM OR USE BUILD.SH
