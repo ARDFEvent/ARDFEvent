@@ -22,7 +22,7 @@ HEADER_HEIGHT = 20
 
 
 class DrawClassDetailWindow(QWidget):
-    def __init__(self, draw_class: DrawClass):
+    def __init__(self, draw_class):
         super().__init__()
 
         self.draw_class = draw_class
