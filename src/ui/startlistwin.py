@@ -117,13 +117,14 @@ class StartlistWindow(QWidget):
                 QHeaderView.ResizeMode.ResizeToContents
             )
             self.startlist_table.clear()
-            self.startlist_table.setColumnCount(5)
+            self.startlist_table.setColumnCount(6)
             self.startlist_table.setHorizontalHeaderLabels(
                 [QCoreApplication.translate("StartListWindow", "Čas startu"),
                  QCoreApplication.translate("StartListWindow", "Jméno"),
                  QCoreApplication.translate("StartListWindow", "Kategorie"),
                  QCoreApplication.translate("StartListWindow", "Index"),
-                 QCoreApplication.translate("StartListWindow", "SI")]
+                 QCoreApplication.translate("StartListWindow", "SI"),
+                 QCoreApplication.translate("StartListWindow", "St. č.")]
             )
             self.startlist_table.setRowCount(1000)
 
@@ -140,6 +141,7 @@ class StartlistWindow(QWidget):
                 self.startlist_table.setItem(row, 2, QTableWidgetItem(person.category.name))
                 self.startlist_table.setItem(row, 3, QTableWidgetItem(person.reg))
                 self.startlist_table.setItem(row, 4, QTableWidgetItem(str(person.si)))
+                self.startlist_table.setItem(row, 5, QTableWidgetItem(str(person.startno) if person.startno else "-"))
 
                 row += 1
             self.startlist_table.setSortingEnabled(True)

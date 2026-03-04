@@ -34,6 +34,7 @@ class StartNumberWindow(QWidget):
                         runner.startno = i
                         i += 1
             sess.commit()
+        self.mw.startlist_win._update_startlist()
         self.close()
 
     def show(self):
