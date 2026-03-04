@@ -205,7 +205,8 @@ class MainWindow(QMainWindow):
                 {
                     "name": Path(dbfile).name,
                     "date_tzero": datetime.now().isoformat(),
-                    "band": "2m",
+                    "band": "80m",
+                    "organizer": "",
                     "limit": 0,
                 },
             )
@@ -392,7 +393,7 @@ class RaceWindow(QWidget):
             sidebar_w = self.sidebar.width() if hasattr(self, "sidebar") else 80
         except:
             sidebar_w = 80
-            
+
         remaining = max(300, win_w - sidebar_w - 24)
         try:
             self.stack.setMinimumWidth(remaining)
