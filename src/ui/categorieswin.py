@@ -46,6 +46,12 @@ class CategoriesWindow(QWidget):
 
         self.categories_list = QListWidget()
         self.categories_list.itemClicked.connect(self._select)
+        self.categories_list.setStyleSheet("""
+            QListWidget::item:selected {
+                background-color: #e330bc;
+                color: black;
+            }
+        """)
         leftlay.addWidget(self.categories_list)
 
         rightlay = QVBoxLayout()

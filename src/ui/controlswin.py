@@ -6,7 +6,7 @@ from PySide6.QtWidgets import (
     QTableWidget,
     QTableWidgetItem,
     QVBoxLayout,
-    QWidget,
+    QWidget, QAbstractItemView,
 )
 from sqlalchemy import Delete, Select
 from sqlalchemy.orm import Session
@@ -70,6 +70,16 @@ class ControlsWindow(QWidget):
                                               QCoreApplication.translate("ControlsWindow", "Z. šířka"),
                                               QCoreApplication.translate("ControlsWindow", "Z. délka")])
         self.table.itemClicked.connect(self._set_last)
+        self.table.setStyleSheet("""
+            QTableWidget::item:selected {
+                background-color: #e330bc;
+                color: black;
+            }
+        """)
+
+        self.table.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.table.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.table.setEditTriggers(QAbstractItemView.DoubleClicked)
 
         mainlay.addWidget(self.table, 1)
 
@@ -174,16 +184,16 @@ class ControlsWindow(QWidget):
         self.table.setRowCount(self.table.rowCount() + 1)
 
         it_name = QTableWidgetItem(control.name)
-        it_name.setFlags(Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsEnabled)
+        it_name.setFlags(Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable)
         self.table.setItem(i, 0, it_name)
 
         it_code = QTableWidgetItem(str(control.code))
-        it_code.setFlags(Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsEnabled)
+        it_code.setFlags(Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable)
         self.table.setItem(i, 1, it_code)
 
         it_mandatory = QTableWidgetItem()
         it_mandatory.setFlags(
-            Qt.ItemFlag.ItemIsUserCheckable | Qt.ItemFlag.ItemIsEnabled
+            Qt.ItemFlag.ItemIsUserCheckable | Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable
         )
 
         if control.mandatory:
@@ -195,7 +205,7 @@ class ControlsWindow(QWidget):
 
         it_spectator = QTableWidgetItem()
         it_spectator.setFlags(
-            Qt.ItemFlag.ItemIsUserCheckable | Qt.ItemFlag.ItemIsEnabled
+            Qt.ItemFlag.ItemIsUserCheckable | Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable
         )
 
         if control.spectator:
@@ -206,11 +216,11 @@ class ControlsWindow(QWidget):
         self.table.setItem(i, 3, it_spectator)
 
         it_lat = QTableWidgetItem(str(control.lat or ""))
-        it_lat.setFlags(Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsEnabled)
+        it_lat.setFlags(Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable)
         self.table.setItem(i, 4, it_lat)
 
         it_lon = QTableWidgetItem(str(control.lon or ""))
-        it_lon.setFlags(Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsEnabled)
+        it_lon.setFlags(Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable)
         self.table.setItem(i, 5, it_lon)
 
     def _update_table(self):
