@@ -36,13 +36,29 @@ from ui.pluginmanagerwin import PluginManagerWindow
 
 
 class IconSidebar(QWidget):
-    def __init__(self, parent=None, icon_size=QSize(30, 30), width=56):
+    def __init__(self, parent=None, icon_size=QSize(30, 30), width=180, collapsed_width=56):
         super().__init__(parent)
         self._icon_size = icon_size
-        self.setFixedWidth(width)
+        self._full_width = width
+        self._collapsed_width = collapsed_width
+        self._is_collapsed = False
+
+        self.setFixedWidth(self._full_width)
         self._layout = QVBoxLayout(self)
         self._layout.setContentsMargins(6, 6, 6, 6)
         self._layout.setSpacing(6)
+
+        self._toggle_btn = QToolButton(self)
+        self._toggle_btn.setCheckable(True)
+        self._toggle_btn.setAutoRaise(True)
+        try:
+            self._toggle_btn.setIcon(qta.icon("mdi6.chevron-left"))
+        except Exception:
+            self._toggle_btn.setIcon(QIcon())
+        self._toggle_btn.setIconSize(QSize(16, 16))
+        self._toggle_btn.clicked.connect(self.toggle)
+        self._layout.insertWidget(0, self._toggle_btn, alignment=Qt.AlignmentFlag.AlignHCenter)
+
         self._layout.addStretch(1)
         self._buttons = []
         self._group = QButtonGroup(self)
@@ -56,10 +72,16 @@ class IconSidebar(QWidget):
     def add_button(self, icon: QIcon, text: str, idx: int = None):
         btn = QToolButton(self)
         btn.setIcon(icon)
+        btn.setText(text)
         btn.setToolTip(text)
         btn.setCheckable(True)
         btn.setAutoRaise(True)
         btn.setIconSize(self._icon_size)
+        btn.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+        if self._is_collapsed:
+            btn.setToolButtonStyle(Qt.ToolButtonStyle(0))  # QToolButton.ToolButtonIconOnly
+        else:
+            btn.setToolButtonStyle(Qt.ToolButtonStyle(2))  # QToolButton.ToolButtonTextBesideIcon
 
         if idx is None:
             idx = len(self._buttons)
@@ -80,6 +102,39 @@ class IconSidebar(QWidget):
                 btn.setChecked(True)
         except Exception:
             pass
+
+    def toggle(self):
+        self.set_collapsed(not self._is_collapsed)
+
+    def set_collapsed(self, collapsed: bool):
+        self._is_collapsed = bool(collapsed)
+        if self._is_collapsed:
+            self.setFixedWidth(self._collapsed_width)
+            for b in self._buttons:
+                b.setIconSize(self._icon_size)
+                b.setToolButtonStyle(Qt.ToolButtonStyle(0))  # QToolButton.ToolButtonIconOnly
+            try:
+                self._toggle_btn.setIcon(qta.icon("mdi6.chevron-right"))
+            except Exception:
+                self._toggle_btn.setIcon(QIcon())
+            self._toggle_btn.setChecked(True)
+        else:
+            self.setFixedWidth(self._full_width)
+            for b in self._buttons:
+                b.setIconSize(self._icon_size)
+                b.setToolButtonStyle(Qt.ToolButtonStyle(2))  # QToolButton.ToolButtonTextBesideIcon
+            try:
+                self._toggle_btn.setIcon(qta.icon("mdi6.chevron-left"))
+            except Exception:
+                self._toggle_btn.setIcon(QIcon())
+            self._toggle_btn.setChecked(False)
+
+        parent = self.parent()
+        if parent and hasattr(parent, "_adjust_sidebar_width"):
+            try:
+                parent._adjust_sidebar_width()
+            except Exception:
+                pass
 
 
 class MainWindow(QMainWindow):
@@ -333,7 +388,12 @@ class RaceWindow(QWidget):
             win_w = max(0, self.width())
         except:
             win_w = 800
-        remaining = max(300, win_w - 80)
+        try:
+            sidebar_w = self.sidebar.width() if hasattr(self, "sidebar") else 80
+        except:
+            sidebar_w = 80
+            
+        remaining = max(300, win_w - sidebar_w - 24)
         try:
             self.stack.setMinimumWidth(remaining)
         except:
