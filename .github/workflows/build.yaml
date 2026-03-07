@@ -21,21 +21,33 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Setup Conda (Windows)
+        if: matrix.platform == 'windows'
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          auto-update-conda: true
+          python-version: "3.12"
+          channels: conda-forge
+          activate-environment: build_env
+
+      - name: Install Windows Dependencies
+        if: matrix.platform == 'windows'
+        shell: bash -l {0}
+        run: |
+          conda install -y gdal
+          pip install pyinstaller
+
+      - name: Set up Python (Linux)
+        if: matrix.platform == 'linux'
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-          cache: 'pip'
 
-      - name: Install System Dependencies (Linux)
-        if: runner.os == 'Linux'
+      - name: Install Linux Dependencies
+        if: matrix.platform == 'linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            libgdal-dev gdal-bin \
-            libxcb-cursor0 libxcb-icccm4 libxcb-keysyms1 libxcb-shape0 \
-            libxcb-xinerama0 libxcb-xkb1 libxkbcommon-x11-0 \
-            build-essential binutils
+          sudo apt-get install -y libgdal-dev gdal-bin libxcb-cursor0 binutils
 
       - name: Install Python Dependencies
         run: |
