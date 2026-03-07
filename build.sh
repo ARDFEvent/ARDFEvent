@@ -9,8 +9,13 @@ rm i18n/ARDFEvent_en.qm | true
 rm src/ui/resources.py | true
 rm src/ui/resources_init.py | true
 echo -e "${BIPurple}Create and activate venv...${Color_Off}"
-if [ ! -d ".venv" ]; then
-  python -m venv .venv
+if [ -z "$GITHUB_ACTIONS" ]; then
+  if [ ! -d ".venv" ]; then
+    python -m venv .venv
+  fi
+  source .venv/bin/activate
+else
+  echo "Running in CI: Skipping venv creation"
 fi
 source .venv/bin/activate
 echo -e "${BIPurple}Begin essentials build process...${Color_Off}"
