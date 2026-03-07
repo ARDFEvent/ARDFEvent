@@ -1,0 +1,81 @@
+name: Build ARDFEvent
+
+on:
+  push:
+    tags: [ 'v*' ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            artifact_name: linux-dist
+          - os: windows-latest
+            artifact_name: windows-dist
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install System Dependencies (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libgdal-dev gdal-bin \
+            libxcb-cursor0 libxcb-icccm4 libxcb-keysyms1 libxcb-shape0 \
+            libxcb-xinerama0 libxcb-xkb1 libxkbcommon-x11-0 \
+            build-essential binutils
+
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+
+      - name: Run Pre-build Scripts
+        run: |
+          ${{ runner.os == 'Windows' && '.\build.bat' || 'chmod +x build.sh && ./build.sh' }}
+
+      - name: PyInstaller Build (using .spec)
+        run: pyinstaller --noconfirm ARDFEvent.spec
+
+      - name: Create Linux Artifacts
+        if: runner.os == 'Linux'
+        run: |
+          tar -czvf ARDFEvent-linux-x64.tar.gz -C dist .
+          
+          mkdir -p pkg/usr/bin pkg/DEBIAN
+          cp -r dist/* pkg/usr/bin/
+          echo "Package: ardfevent
+          Version: 1.0.0
+          Architecture: amd64
+          Maintainer: Jakub Jiroutek <jj@lok-o.cz>
+          Description: Opensource SW for ARDF" > pkg/DEBIAN/control
+          dpkg-deb --build pkg ARDFEvent.deb
+
+      - name: Install gdal wrapper for Windows
+        if: runner.os == 'Windows'
+        run: pip install gdal
+
+      - name: Compile Inno Setup Installer
+        if: runner.os == 'Windows'
+        run: |
+          iscc installer.iss
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: |
+            *.tar.gz
+            *.deb
+            Output/*.exe

@@ -14,5 +14,6 @@ dulwich==0.25.1
 standard-imghdr==3.13.0
 maturin==1.11.5
 qtawesome==1.4.0
+setuptools<70.0.0
 pytest
 pytest-qt
