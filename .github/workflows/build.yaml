@@ -22,7 +22,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Conda (Windows)
-        if: matrix.platform == 'windows'
+        if: runner.os == 'Windows'
         uses: conda-incubator/setup-miniconda@v3
         with:
           auto-update-conda: true
@@ -31,23 +31,29 @@ jobs:
           activate-environment: build_env
 
       - name: Install Windows Dependencies
-        if: matrix.platform == 'windows'
+        if: runner.os == 'Windows'
         shell: bash -l {0}
         run: |
           conda install -y gdal
           pip install pyinstaller
 
       - name: Set up Python (Linux)
-        if: matrix.platform == 'linux'
+        if: runner.os == 'Linux'
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
       - name: Install Linux Dependencies
-        if: matrix.platform == 'linux'
+        if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y libgdal-dev gdal-bin libxcb-cursor0 binutils
+          
+          echo "CPLUS_INCLUDE_PATH=/usr/include/gdal" >> $GITHUB_ENV
+          echo "C_INCLUDE_PATH=/usr/include/gdal" >> $GITHUB_ENV
+
+      - name: Install Rust (for maturin)
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Install Python Dependencies
         run: |
