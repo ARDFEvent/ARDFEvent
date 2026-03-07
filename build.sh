@@ -25,7 +25,8 @@ cd src/rust_results || exit
 echo -e "${BYellow}Install required rust libraries using cargo${Color_Off}"
 cargo fetch
 echo -e "${BYellow}Build and install results module using maturin${Color_Off}"
-maturin develop --release
+maturin build --release --interpreter python
+pip install target/wheels/*.whl
 cd ../..
 echo -e "${BYellow}Build language files using pyside6-lrelease${Color_Off}"
 pyside6-lrelease i18n/ARDFEvent_en.ts
