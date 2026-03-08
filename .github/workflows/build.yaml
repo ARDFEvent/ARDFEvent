@@ -35,7 +35,7 @@ jobs:
         shell: bash -l {0}
         run: |
           conda install -y gdal
-          pip install pyinstaller
+          pip install gdal
 
       - name: Set up Python (Linux)
         if: runner.os == 'Linux'
@@ -80,10 +80,6 @@ jobs:
           Maintainer: Jakub Jiroutek <jj@lok-o.cz>
           Description: Opensource SW for ARDF" > pkg/DEBIAN/control
           dpkg-deb --build pkg ARDFEvent.deb
-
-      - name: Install gdal wrapper for Windows
-        if: runner.os == 'Windows'
-        run: pip install gdal
 
       - name: Compile Inno Setup Installer
         if: runner.os == 'Windows'

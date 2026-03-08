@@ -29,11 +29,11 @@ ArchitecturesAllowed=x64compatible
 ; the 64-bit view of the registry.
 ArchitecturesInstallIn64BitMode=x64compatible
 DisableProgramGroupPage=yes
-LicenseFile=C:\Users\jjiro\Documents\ARDFEvent\LICENSE
+LicenseFile=LICENSE
 ; Uncomment the following line to run in non administrative install mode (install for current user only).
 ;PrivilegesRequired=lowest
 OutputBaseFilename=ARDFEvent
-SetupIconFile=C:\Users\jjiro\Documents\ARDFEvent\icons\icon.ico
+SetupIconFile=icons\icon.ico
 SolidCompression=yes
 WizardStyle=modern
 
@@ -45,8 +45,8 @@ Name: "czech"; MessagesFile: "compiler:Languages\Czech.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "C:\Users\jjiro\Documents\ARDFEvent\dist\ARDFEvent\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\jjiro\Documents\ARDFEvent\dist\ARDFEvent\_internal\*"; DestDir: "{app}\_internal\"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "dist\ARDFEvent\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\ARDFEvent\_internal\*"; DestDir: "{app}\_internal\"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]

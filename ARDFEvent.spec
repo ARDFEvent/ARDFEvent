@@ -16,6 +16,9 @@ datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
 tmp_ret = collect_all('certifi')
 datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
 
+tmp_ret = collect_all('ardfevent_rust')
+datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
+
 a = Analysis(
     ['src/main.py'],
     pathex=[],
@@ -26,8 +29,6 @@ a = Analysis(
     hooksconfig={},
     runtime_hooks=[],
     excludes=['PySide6.Qt3D',
-        'PySide6.QtQuick',
-        'PySide6.QtQml',
         'PySide6.QtWebEngineCore'
         'PySide6.QtWebEngineWidgets'],
     noarchive=False,
