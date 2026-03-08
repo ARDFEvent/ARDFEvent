@@ -293,176 +293,181 @@ class ReadoutWindow(QWidget):
         def line(string: str = ""):
             text(string + "\n")
 
-        with Session(self.mw.db) as sess:
-            runner = sess.scalars(Select(Runner).where(Runner.si == si)).one()
-            basic_info = api.get_basic_info(self.mw.db)
-            results_cat = results.calculate_category(self.mw.db, runner.category.name)
-            try:
-                result = list(filter(lambda x: x.name == runner.name, results_cat))[0]
-            except:
-                return
+        try:
+            self.printer.open()
+            with Session(self.mw.db) as sess:
+                runner = sess.scalars(Select(Runner).where(Runner.si == si)).one()
+                basic_info = api.get_basic_info(self.mw.db)
+                results_cat = results.calculate_category(self.mw.db, runner.category.name)
+                try:
+                    result = list(filter(lambda x: x.name == runner.name, results_cat))[0]
+                except:
+                    return
 
-            if not snura:
-                if self.printer_optns.logo:
-                    self.printer.set(align="center", double_height=False)
-                    self.printer.image(self.printer_optns.logo)
+                if not snura:
+                    if self.printer_optns.logo:
+                        self.printer.set(align="center", double_height=False)
+                        self.printer.image(self.printer_optns.logo)
 
-                if self.printer_optns.title:
-                    self.printer.set(align="center", double_height=True)
-                    line(basic_info["name"])
-                    self.printer.set(align="center", double_height=False)
-                    line(datetime.fromisoformat(basic_info["date_tzero"]).strftime("%d. %m. %Y"))
-                self.printer.set(align="left")
-                line()
-            else:
-                self.snura_i += 1
-                line(runner.category.name)
-                line(f"LÍSTEK Č. {self.snura_i}, {datetime.now().strftime("%H:%M:%S")}")
-                if result.status == "OK":
-                    line(f"{result.place}. MÍSTO")
-                else:
-                    line("NA KONEC - není OK")
-                line("\n")
-
-            punches = list(sess.scalars(Select(Punch).where(Punch.si == si)).all())
-            punches.sort(key=lambda x: x.time)
-
-            start = sess.scalars(
-                Select(Punch).where(Punch.si == si).where(Punch.code == 1000)
-            ).one_or_none()
-
-            if not snura:
-                self.printer.set(bold=True)
-                text(runner.name)
-                self.printer.set(bold=False)
-                text(f" ({runner.reg}), ")
-                self.printer.set(bold=True)
-                line(runner.category.name)
-                self.printer.set(bold=False)
-                line(f"Klub:  {runner.club}")
-                line(f"SI:    {runner.si}")
-            else:
-                self.printer.set(align="center", double_height=True)
-                line(runner.name)
-                self.printer.set(align="left", double_height=False)
-                line(f"{runner.reg}, {runner.category.name}")
-
-            startovka = None
-
-            if runner.startlist_time:
-                startovka = runner.startlist_time
-                line(f"Start: {startovka.strftime('%H:%M:%S')}")
-
-            line("")
-
-            if start:
-                stime: datetime = start.time
-            elif startovka:
-                stime: datetime = startovka
-            else:
-                stime: datetime = datetime.fromisoformat(api.get_basic_info(self.mw.db)["date_tzero"])
-
-            lasttime = stime
-
-            self.printer.set(bold=True)
-            line(f"Kód\tČas\tMezičas{"\t Reálný čas" if self.printer_optns.paper else ""}".expandtabs(10))
-            self.printer.set(bold=False)
-
-            for punch in punches:
-                controls = sess.scalars(
-                    Select(Control).where(Control.code == punch.code)
-                ).all()
-
-                for icontrol in controls:
-                    if icontrol in runner.category.controls:
-                        control = icontrol
-                        break
-                else:
-                    control = controls[0] if len(controls) else None
-
-                if control:
-                    cn_name = f"({punch.code}) {control.name if control in runner.category.controls else f'{control.name}+'}"
-                elif punch.code == 1000:
-                    cn_name = "Start"
-                elif punch.code == 1001:
-                    cn_name = "Finish"
-                else:
-                    cn_name = f"({punch.code}) N/A"
-                ptime: datetime = punch.time
-                fromstart = ptime - stime
-                split = ptime - lasttime
-
-                line(
-                    f"{cn_name}\t{format_delta(fromstart)}\t+{format_delta(split)}{f"\t {ptime.strftime("%H:%M:%S")}" if self.printer_optns.paper else ""}".expandtabs(
-                        10
-                    )
-                )
-
-                lasttime = ptime
-
-            line()
-
-            text("Výsledek: ")
-            self.printer.set(bold=True)
-            line(
-                f"{format_delta(timedelta(seconds=result.time))}, {result.tx} TX, {result.status}\n"
-            )
-            self.printer.set(bold=False)
-            if not snura:
-                self.printer.set(bold=True)
-                line("Výsledky:")
-                self.printer.set(bold=False)
-
-                for result_lp in results_cat[:3]:
-                    if result_lp.status != "OK":
-                        continue
-                    place = f"{result_lp.place}."
+                    if self.printer_optns.title:
+                        self.printer.set(align="center", double_height=True)
+                        line(basic_info["name"])
+                        self.printer.set(align="center", double_height=False)
+                        line(datetime.fromisoformat(basic_info["date_tzero"]).strftime("%d. %m. %Y"))
                     self.printer.set(align="left")
-                    text(f"{place} {result_lp.name}{" " if self.printer_optns.paper else "\n"}")
-                    if not self.printer_optns.paper:
-                        self.printer.set(align="right")
-                    line(
-                        f"{"(" if self.printer_optns.paper else ""}{format_delta(timedelta(seconds=result_lp.time))}, {result_lp.tx} TX{")" if self.printer_optns.paper else ""}"
-                    )
+                    line()
+                else:
+                    self.snura_i += 1
+                    line(runner.category.name)
+                    line(f"LÍSTEK Č. {self.snura_i}, {datetime.now().strftime("%H:%M:%S")}")
+                    if result.status == "OK":
+                        line(f"{result.place}. MÍSTO")
+                    else:
+                        line("NA KONEC - není OK")
+                    line("\n")
 
-                if result.place > 3 or result.status != "OK":
+                punches = list(sess.scalars(Select(Punch).where(Punch.si == si)).all())
+                punches.sort(key=lambda x: x.time)
+
+                start = sess.scalars(
+                    Select(Punch).where(Punch.si == si).where(Punch.code == 1000)
+                ).one_or_none()
+
+                if not snura:
                     self.printer.set(bold=True)
-                    place = f"{result.place}."
-                    self.printer.set(align="left")
-                    text(f"{place} {result.name}{" " if self.printer_optns.paper else "\n"}")
-                    if not self.printer_optns.paper:
-                        self.printer.set(align="right")
+                    text(runner.name)
+                    self.printer.set(bold=False)
+                    text(f" ({runner.reg}), ")
+                    self.printer.set(bold=True)
+                    line(runner.category.name)
+                    self.printer.set(bold=False)
+                    line(f"Klub:  {runner.club}")
+                    line(f"SI:    {runner.si}")
+                else:
+                    self.printer.set(align="center", double_height=True)
+                    line(runner.name)
+                    self.printer.set(align="left", double_height=False)
+                    line(f"{runner.reg}, {runner.category.name}")
+
+                startovka = None
+
+                if runner.startlist_time:
+                    startovka = runner.startlist_time
+                    line(f"Start: {startovka.strftime('%H:%M:%S')}")
+
+                line("")
+
+                if start:
+                    stime: datetime = start.time
+                elif startovka:
+                    stime: datetime = startovka
+                else:
+                    stime: datetime = datetime.fromisoformat(api.get_basic_info(self.mw.db)["date_tzero"])
+
+                lasttime = stime
+
+                self.printer.set(bold=True)
+                line(f"Kód\tČas\tMezičas{"\t Reálný čas" if self.printer_optns.paper else ""}".expandtabs(10))
+                self.printer.set(bold=False)
+
+                for punch in punches:
+                    controls = sess.scalars(
+                        Select(Control).where(Control.code == punch.code)
+                    ).all()
+
+                    for icontrol in controls:
+                        if icontrol in runner.category.controls:
+                            control = icontrol
+                            break
+                    else:
+                        control = controls[0] if len(controls) else None
+
+                    if control:
+                        cn_name = f"({punch.code}) {control.name if control in runner.category.controls else f'{control.name}+'}"
+                    elif punch.code == 1000:
+                        cn_name = "Start"
+                    elif punch.code == 1001:
+                        cn_name = "Finish"
+                    else:
+                        cn_name = f"({punch.code}) N/A"
+                    ptime: datetime = punch.time
+                    fromstart = ptime - stime
+                    split = ptime - lasttime
+
                     line(
-                        f"{"(" if self.printer_optns.paper else ""}{format_delta(timedelta(seconds=result.time))}, {result.tx} TX{")" if self.printer_optns.paper else ""}"
+                        f"{cn_name}\t{format_delta(fromstart)}\t+{format_delta(split)}{f"\t {ptime.strftime("%H:%M:%S")}" if self.printer_optns.paper else ""}".expandtabs(
+                            10
+                        )
                     )
 
-                if self.printer_optns.qr or self.printer_optns.link:
-                    self.printer.set(align="left", bold=True)
-                    line("\nŽivé výsledky:" + (" rob-is.cz/vysledky" if self.printer_optns.link else ""))
-                    if self.printer_optns.qr:
-                        self.printer.set(align="center")
-                        self.printer.qr("https://rob-is.cz/vysledky", size=5)
+                    lasttime = ptime
+
+                line()
+
+                text("Výsledek: ")
+                self.printer.set(bold=True)
+                line(
+                    f"{format_delta(timedelta(seconds=result.time))}, {result.tx} TX, {result.status}\n"
+                )
+                self.printer.set(bold=False)
+                if not snura:
+                    self.printer.set(bold=True)
+                    line("Výsledky:")
+                    self.printer.set(bold=False)
+
+                    for result_lp in results_cat[:3]:
+                        if result_lp.status != "OK":
+                            continue
+                        place = f"{result_lp.place}."
+                        self.printer.set(align="left")
+                        text(f"{place} {result_lp.name}{" " if self.printer_optns.paper else "\n"}")
+                        if not self.printer_optns.paper:
+                            self.printer.set(align="right")
+                        line(
+                            f"{"(" if self.printer_optns.paper else ""}{format_delta(timedelta(seconds=result_lp.time))}, {result_lp.tx} TX{")" if self.printer_optns.paper else ""}"
+                        )
+
+                    if result.place > 3 or result.status != "OK":
+                        self.printer.set(bold=True)
+                        place = f"{result.place}."
+                        self.printer.set(align="left")
+                        text(f"{place} {result.name}{" " if self.printer_optns.paper else "\n"}")
+                        if not self.printer_optns.paper:
+                            self.printer.set(align="right")
+                        line(
+                            f"{"(" if self.printer_optns.paper else ""}{format_delta(timedelta(seconds=result.time))}, {result.tx} TX{")" if self.printer_optns.paper else ""}"
+                        )
+
+                    if self.printer_optns.qr or self.printer_optns.link:
+                        self.printer.set(align="left", bold=True)
+                        line("\nŽivé výsledky:" + (" rob-is.cz/vysledky" if self.printer_optns.link else ""))
+                        if self.printer_optns.qr:
+                            self.printer.set(align="center")
+                            self.printer.qr("https://rob-is.cz/vysledky", size=5)
+                        else:
+                            line()
                     else:
                         line()
                 else:
                     line()
-            else:
-                line()
 
-            self.printer.set(align="center")
-            line("JJ ARDFEvent, (C) Jakub Jiroutek")
+                self.printer.set(align="center")
+                line("JJ ARDFEvent, (C) Jakub Jiroutek")
 
-            if self.printer_optns.cut:
-                self.printer.cut()
-            self.printer.print_and_feed(self.printer_optns.feed)
+                if self.printer_optns.cut:
+                    self.printer.cut()
+                self.printer.print_and_feed(self.printer_optns.feed)
 
-            if isinstance(self.printer, Dummy):
-                print("-" * 50)
-                try:
-                    print(self.printer.output.decode("CP852"))
-                except:
-                    print(self.printer.output)
-                self.printer.clear()
+                if isinstance(self.printer, Dummy):
+                    print("-" * 50)
+                    try:
+                        print(self.printer.output.decode("CP852"))
+                    except:
+                        print(self.printer.output)
+                    self.printer.clear()
+        finally:
+            if self.printer:
+                self.printer.close()
 
 
 class PrinterOptions:
@@ -609,17 +614,23 @@ class PrinterSetupDialog(QDialog):
         elif self.dummy_optn.isChecked():
             self.rdowin.printer = Dummy()
 
-        self.rdowin.printer.charcode("CP852")
+        
+        try:
+            self.rdowin.printer.open()
+            self.rdowin.printer.charcode("CP852")
 
-        self.rdowin.printer_optns = PrinterOptions(self.paper_edit.currentText() == "80 mm",
-                                                   self.title_check.isChecked(), self.feed_edit.value(),
-                                                   self.cut_check.isChecked(), self.logo_lbl.text(),
-                                                   self.link_check.isChecked(), self.qr_check.isChecked())
+            self.rdowin.printer_optns = PrinterOptions(self.paper_edit.currentText() == "80 mm",
+                                                    self.title_check.isChecked(), self.feed_edit.value(),
+                                                    self.cut_check.isChecked(), self.logo_lbl.text(),
+                                                    self.link_check.isChecked(), self.qr_check.isChecked())
 
-        self.rdowin.printer.textln("Zde tisknu!")
-        self.rdowin.printer.print_and_feed(self.feed_edit.value())
-        if self.cut_check.isChecked():
-            self.rdowin.printer.cut()
+            self.rdowin.printer.textln("Zde tisknu!")
+            self.rdowin.printer.print_and_feed(self.feed_edit.value())
+            if self.cut_check.isChecked():
+                self.rdowin.printer.cut()
+        finally:
+            if self.rdowin.printer:
+                self.rdowin.printer.close()
         self.close()
 
     def _epson_preset(self):
