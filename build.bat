@@ -21,6 +21,7 @@ call ".venv\Scripts\activate.bat"
 echo Begin essentials build process...
 echo Install requirements using pip
 pip install -r requirements.txt
+pip install pywin32
 
 pushd "src\rust_results" || (
   echo Failed to change directory to src\rust_results

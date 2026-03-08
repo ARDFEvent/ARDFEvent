@@ -525,6 +525,12 @@ class PrinterSetupDialog(QDialog):
         self.usbmodel_edit.setInputMask("HHHH")
         usb_lay.addRow("USB model (HEX)", self.usbmodel_edit)
 
+        self.win32_optn = QRadioButton("Win32 (nativní)")
+        self.win32_optn.clicked.connect(self._toggle)
+        main_lay.addWidget(self.win32_optn)
+        self.win32_edit = QComboBox()
+        main_lay.addWidget(self.win32_edit)
+
         self.dummy_optn = QRadioButton("Dummy - pouze testovací")
         self.dummy_optn.clicked.connect(self._toggle)
         main_lay.addWidget(self.dummy_optn)
@@ -574,6 +580,9 @@ class PrinterSetupDialog(QDialog):
             self.usb_optn.setEnabled(False)
             epson_btn.setEnabled(False)
             self.usb_optn.setText(self.usb_optn.text() + " (nedostupné na Windows)")
+        else:
+            self.win32_optn.setEnabled(False)
+            self.win32_optn.setText(self.win32_optn.text() + " (pouze na Windows)")
 
         self._toggle()
 
@@ -594,6 +603,9 @@ class PrinterSetupDialog(QDialog):
             self.rdowin.printer = Serial(self.serial_edit.currentText())
         elif self.usb_optn.isChecked():
             self.rdowin.printer = Usb(int(self.usbvendor_edit.text(), 16), int(self.usbmodel_edit.text(), 16))
+        elif self.win32_optn.isChecked():
+            from escpos.printer import Win32Raw
+            self.rdowin.printer = Win32Raw(self.win32_edit.currentText())
         elif self.dummy_optn.isChecked():
             self.rdowin.printer = Dummy()
 
@@ -603,7 +615,7 @@ class PrinterSetupDialog(QDialog):
                                                    self.title_check.isChecked(), self.feed_edit.value(),
                                                    self.cut_check.isChecked(), self.logo_lbl.text(),
                                                    self.link_check.isChecked(), self.qr_check.isChecked())
-        
+
         self.rdowin.printer.textln("Zde tisknu!")
         self.rdowin.printer.print_and_feed(self.feed_edit.value())
         if self.cut_check.isChecked():
@@ -622,12 +634,19 @@ class PrinterSetupDialog(QDialog):
     def exec(self):
         self.serial_edit.clear()
         self.serial_edit.addItems([p.device for p in comports()[::-1]])
+        if os.name == "nt":
+            import win32print
+            self.win32_edit.clear()
+            self.win32_edit.addItems([p[2] for p in win32print.EnumPrinters(
+                win32print.PRINTER_ENUM_LOCAL | win32print.PRINTER_ENUM_CONNECTIONS)])
+
         super().exec()
 
     def _toggle(self):
         self.serial_edit.setEnabled(self.serial_optn.isChecked())
         self.usbvendor_edit.setEnabled(self.usb_optn.isChecked())
         self.usbmodel_edit.setEnabled(self.usb_optn.isChecked())
+        self.win32_edit.setEnabled(self.win32_optn.isChecked())
 
 
 class InForestThread(QThread):
