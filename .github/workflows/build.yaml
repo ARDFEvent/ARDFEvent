@@ -71,15 +71,6 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           tar -czvf ARDFEvent-linux-x64.tar.gz -C dist .
-          
-          mkdir -p pkg/usr/bin pkg/DEBIAN
-          cp -r dist/* pkg/usr/bin/
-          echo "Package: ardfevent
-          Version: 1.0.0
-          Architecture: amd64
-          Maintainer: Jakub Jiroutek <jj@lok-o.cz>
-          Description: Opensource SW for ARDF" > pkg/DEBIAN/control
-          dpkg-deb --build pkg ARDFEvent.deb
 
       - name: Compile Inno Setup Installer
         if: runner.os == 'Windows'
@@ -92,5 +83,4 @@ jobs:
           name: ${{ matrix.artifact_name }}
           path: |
             *.tar.gz
-            *.deb
             Output/*.exe
