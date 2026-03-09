@@ -49,6 +49,10 @@ class RunnerWindow(QWidget):
         self.search.textEdited.connect(self._update_runners_cats)
         linelay.addWidget(self.search)
 
+        import_btn = QTAIconButton("mdi6.import", QCoreApplication.translate("RunnerWindow", "Import"))
+        import_btn.clicked.connect(self.mw.import_win.show)
+        linelay.addWidget(import_btn)
+
         self.runners_list = QListWidget()
         self.runners_list.itemClicked.connect(self._select_by_user)
         leftlay.addWidget(self.runners_list)

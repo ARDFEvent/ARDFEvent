@@ -309,6 +309,7 @@ class RaceWindow(QWidget):
 
         self.sidebar = IconSidebar(self)
         layout.addWidget(self.sidebar)
+        self.sidebar.set_collapsed(True)
         self.stack = QStackedWidget()
         layout.addWidget(self.stack)
 
@@ -321,7 +322,7 @@ class RaceWindow(QWidget):
                       qta.icon("mdi6.antenna"))
         self.add_page(self.categories_win, QCoreApplication.translate("MainWindow", "Kategorie"),
                       qta.icon("mdi6.account-group-outline"))
-        self.add_page(self.import_win, QCoreApplication.translate("MainWindow", "Import"), qta.icon("mdi6.import"))
+        # self.add_page(self.import_win, QCoreApplication.translate("MainWindow", "Import"), qta.icon("mdi6.import"))
         self.add_page(self.runners_win, QCoreApplication.translate("MainWindow", "Běžci"), qta.icon("mdi6.run"))
         self.add_page(self.readout_win, QCoreApplication.translate("MainWindow", "Vyčítání"),
                       qta.icon("mdi6.cable-data"))
@@ -333,8 +334,8 @@ class RaceWindow(QWidget):
                       qta.icon("mdi6.pine-tree-variant-outline"))
         self.add_page(self.map_win, QCoreApplication.translate("MainWindow", "Mapa"),
                       qta.icon("mdi6.map-outline"))
-        self.add_page(self.experimental_win, QCoreApplication.translate("MainWindow", "Experimentální"),
-                      qta.icon("mdi6.flask"))
+        # self.add_page(self.experimental_win, QCoreApplication.translate("MainWindow", "Experimentální"),
+        #               qta.icon("mdi6.flask"))
 
         self.stack.setCurrentIndex(0)
         self.sidebar.set_current(0)
