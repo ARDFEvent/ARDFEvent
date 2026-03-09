@@ -1,7 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 from PyInstaller.utils.hooks import collect_all
 
-datas = [('src/web/static', 'web/static/'), ('src/exports/templates', 'exports/templates/')]
+datas = [('src/web/static', 'web/static/'), ('src/exports/templates', 'exports/templates/'), ('src/ui/qml', 'ui/qml/')]
 binaries = []
 hiddenimports = []
 tmp_ret = collect_all('escpos')
@@ -28,12 +28,41 @@ a = Analysis(
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=['PySide6.Qt3D',
-        'PySide6.QtWebEngineCore'
-        'PySide6.QtWebEngineWidgets'],
+    excludes=[
+        'PySide6.QtWebEngineCore',
+        'PySide6.QtWebEngineWidgets',
+        'PySide6.QtWebEngineQuick', # Specifically for QML WebEngine
+        'PySide6.Qt3DCore',
+        'PySide6.Qt3DRender',
+        'PySide6.Qt3DInput',
+        'PySide6.Qt3DLogic',
+        'PySide6.Qt3DExtras',
+        'PySide6.Qt3DAnimation',
+        'PySide6.QtBluetooth',
+        'PySide6.QtNfc',
+        'PySide6.QtRemoteObjects',
+        'PySide6.QtSensors',
+        'PySide6.QtSerialPort',
+        'PySide6.QtSql',
+        'PySide6.QtTest',
+        'PySide6.QtCharts',
+        'PySide6.QtDataVisualization',
+    ],
     noarchive=False,
     optimize=0,
 )
+
+unwanted = {
+    'WebEngine', 'Qt6WebEngine', 'Qt63D', '3DCore', '3DRender', '3DInput',
+    '3DLogic', '3DExtras', '3DAnimation', 'Bluetooth', 'Qt6Nfc',
+    'RemoteObjects', 'Sensors', 'SerialPort', 'Sql', 'Test',
+    'Charts', 'DataVisualization', 'Pdf', 'VirtualKeyboard'
+}
+
+a.binaries = [x for x in a.binaries if not any(bad.lower() in x[0].lower() or bad.lower() in x[1].lower() for bad in unwanted)]
+
+a.datas = [x for x in a.datas if not any(bad.lower() in x[0].lower() or bad.lower() in x[1].lower() for bad in unwanted)]
+
 pyz = PYZ(a.pure)
 
 exe = EXE(
