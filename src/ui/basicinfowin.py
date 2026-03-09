@@ -63,19 +63,19 @@ class BasicInfoWindow(QWidget):
     def _show(self):
         basic_info = api.get_basic_info(self.mw.db)
 
-        if basic_info["name"]:
+        if basic_info.get("name"):
             self.name_edit.setText(basic_info["name"])
 
-        if basic_info["date_tzero"]:
+        if basic_info.get("date_tzero"):
             self.date_edit.setDateTime(parser().parse(basic_info["date_tzero"]))
         else:
             self.date_edit.setDateTime(datetime(2025, 1, 1, 10))
 
-        if basic_info["organizer"]:
+        if basic_info.get("organizer"):
             self.org_edit.setText(basic_info["organizer"])
 
-        if basic_info["limit"]:
+        if basic_info.get("limit"):
             self.limit_edit.setValue(int(basic_info["limit"]))
 
-        if basic_info["band"] in api.BANDS:
+        if basic_info.get("band") in api.BANDS:
             self.band_select.setCurrentIndex(api.BANDS.index(basic_info["band"]))
