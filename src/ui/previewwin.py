@@ -1,6 +1,12 @@
+import os
+import tempfile
+import webbrowser
+
 from PySide6.QtCore import QCoreApplication
 from PySide6.QtGui import QPalette, QColor
-from PySide6.QtWidgets import QFileDialog, QPushButton, QVBoxLayout, QWidget, QTextBrowser, QLabel
+from PySide6.QtWidgets import QFileDialog, QPushButton, QVBoxLayout, QWidget, QTextBrowser
+
+from ui.qtaiconbutton import QTAIconButton
 
 
 class PreviewWindow(QWidget):
@@ -14,7 +20,9 @@ class PreviewWindow(QWidget):
         lay = QVBoxLayout()
         self.setLayout(lay)
 
-        lay.addWidget(QLabel("Náhled je pouze orientační. Neodpovídá zejména přesné rozložení na stránce."))
+        self.print_btn = QTAIconButton("mdi6.printer", QCoreApplication.translate("PreviewWindow", "Vytisknout"))
+        self.print_btn.clicked.connect(self._print)
+        lay.addWidget(self.print_btn)
 
         self.export_btn = QPushButton(QCoreApplication.translate("PreviewWindow", "Exportovat"))
         self.export_btn.clicked.connect(self._export)
@@ -29,6 +37,13 @@ class PreviewWindow(QWidget):
         lay.addWidget(self.txtbrs)
 
         self.showMaximized()
+
+    def _print(self):
+        with tempfile.NamedTemporaryFile('w', delete=False, suffix='.html', encoding='utf-8') as tf:
+            tf.write(self.html.replace("</body>", "<script>window.print();</script></body>"))
+            temp_path = tf.name
+
+        webbrowser.open('file://' + os.path.realpath(temp_path), new=1)
 
     def _export(self):
         fn = QFileDialog.getSaveFileName(
