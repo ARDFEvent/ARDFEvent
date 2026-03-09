@@ -294,7 +294,8 @@ class ReadoutWindow(QWidget):
             text(string + "\n")
 
         try:
-            self.printer.open()
+            if not isinstance(self.printer, Usb):
+                self.printer.open()
             with Session(self.mw.db) as sess:
                 runner = sess.scalars(Select(Runner).where(Runner.si == si)).one()
                 basic_info = api.get_basic_info(self.mw.db)
@@ -466,7 +467,7 @@ class ReadoutWindow(QWidget):
                         print(self.printer.output)
                     self.printer.clear()
         finally:
-            if self.printer:
+            if self.printer and not isinstance(self.printer, Usb):
                 self.printer.close()
 
 
@@ -614,22 +615,22 @@ class PrinterSetupDialog(QDialog):
         elif self.dummy_optn.isChecked():
             self.rdowin.printer = Dummy()
 
-        
         try:
-            self.rdowin.printer.open()
+            if not isinstance(self.rdowin.printer, Usb):
+                self.rdowin.printer.open()
             self.rdowin.printer.charcode("CP852")
 
             self.rdowin.printer_optns = PrinterOptions(self.paper_edit.currentText() == "80 mm",
-                                                    self.title_check.isChecked(), self.feed_edit.value(),
-                                                    self.cut_check.isChecked(), self.logo_lbl.text(),
-                                                    self.link_check.isChecked(), self.qr_check.isChecked())
+                                                       self.title_check.isChecked(), self.feed_edit.value(),
+                                                       self.cut_check.isChecked(), self.logo_lbl.text(),
+                                                       self.link_check.isChecked(), self.qr_check.isChecked())
 
             self.rdowin.printer.textln("Zde tisknu!")
             self.rdowin.printer.print_and_feed(self.feed_edit.value())
             if self.cut_check.isChecked():
                 self.rdowin.printer.cut()
         finally:
-            if self.rdowin.printer:
+            if self.rdowin.printer and not isinstance(self.rdowin.printer, Usb):
                 self.rdowin.printer.close()
         self.close()
 
