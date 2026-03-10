@@ -13,6 +13,7 @@ struct Control {
 }
 
 struct Person {
+    id: u64,
     name: String,
     club: String,
     si: i64,
@@ -30,6 +31,8 @@ struct Punch {
 #[pyclass]
 #[derive(Debug, Clone)]
 pub struct OResult {
+    #[pyo3(get, set)]
+    pub id: u64,
     #[pyo3(get, set)]
     pub name: String,
     #[pyo3(get, set)]
@@ -58,6 +61,7 @@ pub struct OResult {
 impl OResult {
     #[new]
     fn new(
+        id: u64,
         name: String,
         reg: String,
         si: i64,
@@ -70,6 +74,7 @@ impl OResult {
         finish: Option<i64>,
     ) -> Self {
         OResult {
+            id,
             name,
             reg,
             si,
@@ -140,7 +145,7 @@ pub fn calculate_category(_py: Python, _db_path: String, _name: String, _include
         .filter_map(Result::ok)
         .collect();
 
-    let mut persons_stmt = conn.prepare("SELECT name, club, si, reg, startlist_time, manual_dns, manual_disk from runners where category_id = (SELECT id from categories where name = ?1);")
+    let mut persons_stmt = conn.prepare("SELECT name, club, si, reg, startlist_time, manual_dns, manual_disk, id from runners where category_id = (SELECT id from categories where name = ?1);")
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("Database error: {e}")))?;
     let persons: Vec<Person> = persons_stmt.query_map([&_name], |row| {
         Ok(Person {
@@ -151,6 +156,7 @@ pub fn calculate_category(_py: Python, _db_path: String, _name: String, _include
             startlist_time: row.get(4).ok(),
             manual_dns: row.get(5)?,
             manual_disk: row.get(6)?,
+            id: row.get(7)?,
         })
     })
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("Database error: {e}")))?
@@ -169,6 +175,7 @@ pub fn calculate_category(_py: Python, _db_path: String, _name: String, _include
         finish: Option<DateTime<Utc>>,
     ) {
         results.push(OResult {
+            id: per.id,
             name: per.name.clone(),
             reg: per.reg.clone(),
             si: per.si,

@@ -25,6 +25,7 @@ class MapWindowClickModes(Enum):
     ADD_CONTROL = 1
     ADD_START = 2
     ADD_FINISH = 3
+    DELETE = 4
 
 
 class GeoMapper(QObject):
@@ -47,7 +48,7 @@ class GeoMapper(QObject):
                       dstSRS=f"EPSG:3857",
                       format="PNG")
             ds_4326 = gdal.Warp("", resolved_input, format="VRT",
-                                srcSRS="EPSG:5514", dstSRS="EPSG:4326")
+                                srcSRS=srs, dstSRS="EPSG:4326")
         except Exception as e:
             return
 
@@ -148,6 +149,35 @@ class MapHandler(QObject):
         self.update_map_items()
         self.mw.map_win.change_category()
 
+    @Slot(str)
+    def control_clicked(self, cid_str):
+        if self.mw.map_win.mode == MapWindowClickModes.NONE:
+            return
+        elif self.mw.map_win.mode == MapWindowClickModes.DELETE:
+            if cid_str.startswith("START-") or cid_str.startswith("FINISH-"):
+                starts_finishes = api.get_starts_finishes(self.mw.db)
+                idx = int(cid_str.split("-")[1])
+                if cid_str.startswith("START-"):
+                    for category in starts_finishes["categories"].values():
+                        if category.get("start") == idx:
+                            category["start"] = 0
+                    if idx < len(starts_finishes.get("starts", [])):
+                        del starts_finishes["starts"][idx]
+                else:
+                    for category in starts_finishes["categories"].values():
+                        if category.get("finish") == idx:
+                            category["finish"] = 0
+                    if idx < len(starts_finishes.get("finishes", [])):
+                        del starts_finishes["finishes"][idx]
+                api.set_basic_info(self.mw.db, {"map_starts_finishes": json.dumps(starts_finishes)})
+            else:
+                with Session(self.mw.db) as session:
+                    control = session.scalars(Select(Control).where(Control.id == int(cid_str))).one_or_none()
+                    if control:
+                        control.lat = control.lon = None
+                        session.commit()
+            self.update_map_items()
+
     @Slot(float, float)
     def handle_click(self, lat, lon):
         if self.mw.map_win.mode == MapWindowClickModes.NONE:
@@ -171,20 +201,26 @@ class MapHandler(QObject):
         self.update_map_items()
 
     def update_map_items(self, center=False):
-        starts_finishes = json.loads(api.get_basic_info(self.mw.db).get("map_starts_finishes", "{}"))
-        with Session(self.mw.db) as session:
-            controls = session.scalars(Select(Control)).all()
-            category = session.scalars(
+        starts_finishes = api.get_starts_finishes(self.mw.db)
+        with Session(self.mw.db) as sess:
+            controls = sess.scalars(Select(Control)).all()
+            category = sess.scalars(
                 Select(Category).where(Category.name == self.mw.map_win.selected_category)).one()
 
             points = []
+            skip = []
             for control in controls:
+                if control.id in skip:
+                    continue
+                same = sess.scalars(Select(Control).where(Control.code == control.code)).all()
+                [skip.append(c.id) for c in same if c.id != control.id]
+                lbl = "/".join([c.name for c in same])
                 if not control.lat or not control.lon:
                     continue
                 points.append(
                     {"control_id": str(control.id), "type": "control", "latitude": control.lat,
                      "longitude": control.lon,
-                     "label": control.name, "active": control in category.controls})
+                     "label": lbl, "active": control in category.controls})
             for i, start in enumerate(starts_finishes["starts"]):
                 if not start.get("lat") or not start.get("lon"):
                     continue
@@ -361,6 +397,12 @@ class MapWindow(QWidget):
         self.addfinish_btn.clicked.connect(lambda: self.set_map_mode(MapWindowClickModes.ADD_FINISH))
         toolbar.addWidget(self.addfinish_btn)
 
+        toolbar.addStretch()
+
+        self.del_btn = QTAIconButton("mdi6.trash-can-outline", "Smazat")
+        self.del_btn.clicked.connect(lambda: self.set_map_mode(MapWindowClickModes.DELETE))
+        toolbar.addWidget(self.del_btn)
+
         self.map_view = QQuickWidget()
         self.map_view.setResizeMode(QQuickWidget.ResizeMode.SizeRootObjectToView)
         maplayout.addWidget(self.map_view)
@@ -400,7 +442,7 @@ class MapWindow(QWidget):
 
     def change_category(self):
         self.category_name_lbl.setText(self.selected_category)
-        self.category_length_lbl.setText(routes.get_lenght_str(self.mw.db, self.selected_category))
+        self.category_length_lbl.setText(routes.get_cat_lenght_str(self.mw.db, self.selected_category))
         starts_finishes = api.get_starts_finishes(self.mw.db)
         if self.mw.map_win.selected_category and (
                 not starts_finishes["categories"].get(self.mw.map_win.selected_category)) and len(
@@ -438,7 +480,7 @@ class MapWindow(QWidget):
 
             for i, cat in enumerate(categories):
                 self.categories_table.setItem(i, 0, QTableWidgetItem(cat.name))
-                self.categories_table.setItem(i, 1, QTableWidgetItem(routes.get_lenght_str(self.mw.db, cat.name)))
+                self.categories_table.setItem(i, 1, QTableWidgetItem(routes.get_cat_lenght_str(self.mw.db, cat.name)))
 
     def update_problems(self):
         points = []

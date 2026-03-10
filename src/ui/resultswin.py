@@ -21,6 +21,7 @@ import exports.html_results as res_html
 import exports.json_results as res_json
 import exports.xml_results as res_xml
 import results
+import routes
 from models import Category
 from ui.previewwin import PreviewWindow
 from ui.qtaiconbutton import QTAIconButton
@@ -187,7 +188,7 @@ class ResultsWindow(QWidget):
             self.results_table.horizontalHeader().setSectionResizeMode(
                 QHeaderView.ResizeMode.ResizeToContents
             )
-            self.results_table.setColumnCount(5)
+            self.results_table.setColumnCount(6)
             self.results_table.setRowCount(1000)
 
             row = 0
@@ -234,6 +235,14 @@ class ResultsWindow(QWidget):
                             4,
                             QTableWidgetItem(
                                 results.format_delta(timedelta(seconds=person.time))
+                            ),
+                        )
+                        rl = routes.calculate_runner_route(self.mw.db, person.id)
+                        self.results_table.setItem(
+                            row,
+                            5,
+                            QTableWidgetItem(
+                                f"{round(rl, 2)} km" if rl else "-"
                             ),
                         )
 

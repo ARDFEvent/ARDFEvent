@@ -163,7 +163,7 @@ class CategoriesWindow(QWidget):
             for control in category.controls:
                 self.course_list.addItem(QListWidgetItem(control.name))
 
-            self.length_lbl.setText(routes.get_lenght_str(self.mw.db, category.name))
+            self.length_lbl.setText(routes.get_cat_lenght_str(self.mw.db, category.name))
         except:
             ...
 

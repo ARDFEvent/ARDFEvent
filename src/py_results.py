@@ -10,6 +10,7 @@ from models import Category, Control, Punch
 class Result:
     def __init__(
             self,
+            id: int,
             name: str,
             reg: str,
             si: int,
@@ -21,6 +22,7 @@ class Result:
             start: datetime | None = None,
             finish: datetime | None = None,
     ):
+        self.id = id
         self.name = name
         self.reg = reg
         self.si = si
@@ -52,6 +54,7 @@ def calculate_category(db: Engine, name: str, include_unknown: bool = False,
         if runner.manual_dns:
             results.append(
                 Result(
+                    runner.id,
                     runner.name,
                     runner.reg,
                     runner.si,
@@ -67,6 +70,7 @@ def calculate_category(db: Engine, name: str, include_unknown: bool = False,
         elif runner.manual_disk:
             results.append(
                 Result(
+                    runner.id,
                     runner.name,
                     runner.reg,
                     runner.si,
@@ -95,6 +99,7 @@ def calculate_category(db: Engine, name: str, include_unknown: bool = False,
             if include_unknown:
                 results.append(
                     Result(
+                        runner.id,
                         runner.name,
                         runner.reg,
                         runner.si,
@@ -159,6 +164,7 @@ def calculate_category(db: Engine, name: str, include_unknown: bool = False,
 
         results.append(
             Result(
+                runner.id,
                 runner.name,
                 runner.reg,
                 runner.si,

@@ -180,6 +180,9 @@ Item {
                         height: 60
 
                         TapHandler {
+                            onTapped: {
+                                mapHandler.control_clicked(coursePoint.cId.toString());
+                            }
                             onDoubleTapped: {
                                 mapHandler.control_dblclicked(coursePoint.cId.toString());
                             }
