@@ -19,6 +19,7 @@ import exports.xml_startlist as stl_xml
 from models import Runner
 from ui.previewwin import PreviewWindow
 from ui.qtaiconbutton import QTAIconButton
+from ui.reportwin import Report, ReportType
 
 
 class StartlistWindow(QWidget):
@@ -62,6 +63,23 @@ class StartlistWindow(QWidget):
         self.startlist_table = QTableWidget()
         self.startlist_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         lay.addWidget(self.startlist_table)
+
+        self.mw.reports.append(Report(
+            report_type=ReportType.STARTLIST,
+            name=QCoreApplication.translate("ResultsWindow", "Startovka"),
+            description=QCoreApplication.translate("ResultsWindow", "Startovka po kategoriích"),
+            source="ARDFEvent",
+            func=stl_html.generate,
+            args={}
+        ))
+        self.mw.reports.append(Report(
+            report_type=ReportType.STARTLIST,
+            name=QCoreApplication.translate("ResultsWindow", "Startovka (min)"),
+            description=QCoreApplication.translate("ResultsWindow", "Startovka po minutách"),
+            source="ARDFEvent",
+            func=stl_min_html.generate,
+            args={}
+        ))
 
     def _export_html(self):
         self.pws.append(PreviewWindow(stl_html.generate(self.mw.db)))

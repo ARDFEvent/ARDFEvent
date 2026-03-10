@@ -1,4 +1,7 @@
 from abc import ABC, abstractmethod
+from typing import Callable
+
+from ui.reportwin import Report, ReportType
 
 
 class Plugin(ABC):
@@ -26,3 +29,14 @@ class Plugin(ABC):
 
     def register_mw_tab(self, widget, icon):
         self.mw._add_page(widget, f"{self.name} {self.version} ({self.author})", icon)
+
+    def register_report(self, report_type: ReportType, name: str, description: str, source: str, func: Callable,
+                        args: dict):
+        self.mw.reports.append(Report(
+            report_type=report_type,
+            name=name,
+            description=description,
+            source=source,
+            func=func,
+            args=args
+        ))

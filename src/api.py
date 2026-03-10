@@ -48,7 +48,6 @@ def set_basic_info(database: Engine, data: dict):
             if val:
                 val.value = data[key]
             else:
-                print("Added", key, data[key])
                 sess.add(BasicInfo(key=key, value=data[key]))
 
         sess.commit()

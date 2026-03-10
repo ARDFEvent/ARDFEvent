@@ -1,3 +1,4 @@
+import multiprocessing
 import os
 import sys
 import warnings
@@ -18,6 +19,8 @@ LANGUAGES = {
 }
 
 if __name__ == "__main__":
+    multiprocessing.freeze_support()
+    
     os.environ['SSL_CERT_FILE'] = certifi.where()
     os.environ['REQUESTS_CA_BUNDLE'] = certifi.where()
 

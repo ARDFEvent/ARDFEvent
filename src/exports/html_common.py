@@ -18,7 +18,7 @@ def get_event(db: Engine):
 
     return {
         "name": basic_info["name"],
-        "date": race_time.strftime("%d.%m.%Y"),
+        "date": race_time.strftime("%d. %m. %Y"),
         "first_start": race_time.strftime("%H:%M"),
         "organizer": basic_info["organizer"],
         "limit": basic_info["limit"],

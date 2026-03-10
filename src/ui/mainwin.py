@@ -1,6 +1,7 @@
 import json
 from datetime import datetime
 from pathlib import Path
+from typing import Callable
 
 import qtawesome as qta
 import sqlalchemy
@@ -30,7 +31,7 @@ from ui import (
     startlistdrawwin,
     startlistwin,
     experimentalwin,
-    startnowin, mapwin
+    startnowin, mapwin, reportwin
 )
 from ui.pluginmanagerwin import PluginManagerWindow
 
@@ -146,6 +147,7 @@ class MainWindow(QMainWindow):
         self.racewin = None
 
         self.plug_pages = []
+        self.reports = []
 
         self.file_menu = self.menuBar().addMenu("&Soubor")
         self.file_menu.addAction(qta.icon("mdi6.calendar-plus"), QCoreApplication.translate("MainWindow", "Nový"),
@@ -234,6 +236,7 @@ class MainWindow(QMainWindow):
 
         for page in self.plug_pages:
             self.racewin.add_page(page[0], page[1], page[2])
+        self.racewin.reports = self.racewin.reports + self.reports
 
         self.setCentralWidget(self.racewin)
 
@@ -251,6 +254,10 @@ class MainWindow(QMainWindow):
     def _add_page(self, widget, label, icon_path=None):
         self.plug_pages.append((widget, label, icon_path))
 
+    def _add_report(self, t: reportwin.ReportType, name: str, desc: str, gen_func: Callable, args: dict,
+                    source: str = "ARDFEvent"):
+        self.reports.append(reportwin.Report(t, name, desc, source, gen_func, args))
+
     def show(self, dbstr=None):
         if dbstr:
             self._open(dbstr=dbstr)
@@ -262,6 +269,7 @@ class RaceWindow(QWidget):
         super().__init__()
 
         self._shortcuts = []
+        self.reports = []
 
         try:
             self.db = sqlalchemy.create_engine(dbstr, max_overflow=-1)
@@ -282,6 +290,7 @@ class RaceWindow(QWidget):
         self.startno_win = startnowin.StartNumberWindow(self)
         self.startlistdraw_win = startlistdrawwin.StartlistDrawWindow(self)
         self.startlist_win = startlistwin.StartlistWindow(self)
+        self.reports_win = reportwin.ReportWindow(self)
         self.ochecklist_win = ochecklistwin.OCheckListWindow(self)
         self.inforest_win = runnersinforestwin.RunnersInForestWindow(self)
         self.map_win = mapwin.MapWindow(self)
@@ -298,6 +307,7 @@ class RaceWindow(QWidget):
             self.startlist_win,
             self.startlistdraw_win,
             self.startlist_win,
+            self.reports_win,
             self.ochecklist_win,
             self.inforest_win,
             self.map_win,
@@ -330,6 +340,8 @@ class RaceWindow(QWidget):
                       qta.icon("mdi6.timer-outline"))
         self.add_page(self.results_win, QCoreApplication.translate("MainWindow", "Výsledky"),
                       qta.icon("mdi6.trophy-outline"))
+        self.add_page(self.reports_win, QCoreApplication.translate("MainWindow", "Sestavy"),
+                      qta.icon("mdi6.file-chart-outline"))
         self.add_page(self.inforest_win, QCoreApplication.translate("MainWindow", "Závodníci v lese"),
                       qta.icon("mdi6.pine-tree-variant-outline"))
         self.add_page(self.map_win, QCoreApplication.translate("MainWindow", "Mapa"),
