@@ -25,11 +25,11 @@ python -m maturin develop --release
 popd
 
 echo Build language files using pyside6-lrelease
-python -m PySide6.scripts.lrelease i18n\ARDFEvent_en.ts
+pyside6-lrelease i18n\ARDFEvent_en.ts
 
 echo Build resource files using pyside6-rcc
-python -m PySide6.scripts.rcc resource.qrc -o src\ui\resources.py
-python -m PySide6.scripts.rcc resource_init.qrc -o src\ui\resources_init.py
+pyside6-rcc resource.qrc -o src\ui\resources.py
+pyside6-rcc resource_init.qrc -o src\ui\resources_init.py
 
 echo OK, everything should run now
 

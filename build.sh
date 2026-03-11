@@ -22,11 +22,9 @@ source .venv/bin/activate
 echo -e "${BIPurple}Begin essentials build process...${Color_Off}"
 gdal-config --version &> /dev/null || { echo -e "${BIRed}GDAL not found${Color_Off}"; exit 1; }
 GDAL_VER=$(gdal-config --version | cut -d' ' -f1)
-if [ -z "$GITHUB_ACTIONS" ]; then
-  echo -e "${BIGreen}Installing GDAL $GDAL_VER...${Color_Off}"
-  pip install "gdal==$GDAL_VER"
-  echo -e "${BPurple}Install requirements using pip${Color_Off}"
-fi
+echo -e "${BIGreen}Installing GDAL $GDAL_VER...${Color_Off}"
+pip install "gdal==$GDAL_VER"
+echo -e "${BPurple}Install requirements using pip${Color_Off}"
 pip install -r requirements.txt
 pip install pygobject
 cd src/rust_results || exit
