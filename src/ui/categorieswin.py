@@ -84,6 +84,7 @@ class CategoriesWindow(QWidget):
         sess = Session(self.mw.db)
 
         category = sess.scalar(Select(Category).where(Category.id == self.selected))
+        routes.invalidate_cache(category.name)
         for control in category.controls:
             if control.name == item.text():
                 category.controls.remove(control)
@@ -163,7 +164,7 @@ class CategoriesWindow(QWidget):
             for control in category.controls:
                 self.course_list.addItem(QListWidgetItem(control.name))
 
-            self.length_lbl.setText(routes.get_cat_lenght_str(self.mw.db, category.name))
+            self.length_lbl.setText(routes.get_cat_lenght_str(category.name))
         except:
             ...
 
@@ -191,6 +192,7 @@ class CategoriesWindow(QWidget):
         category = sess.scalars(
             Select(Category).where(Category.id == self.selected)
         ).one_or_none()
+        routes.invalidate_cache(category.name)
 
         control = sess.scalars(
             Select(Control).where(Control.name == item.text())

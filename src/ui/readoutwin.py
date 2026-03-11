@@ -30,6 +30,7 @@ from sqlalchemy.orm import Session
 
 import api
 import results
+import routes
 from models import Control, Punch, Runner
 from results import format_delta
 from ui.qtaiconbutton import QTAIconButton
@@ -411,6 +412,18 @@ class ReadoutWindow(QWidget):
                     f"{format_delta(timedelta(seconds=result.time))}, {result.tx} TX, {result.status}\n"
                 )
                 self.printer.set(bold=False)
+
+                if lng := routes.calculate_runner_route(runner.id):
+                    line(f"Pořadí: >{lng:.2f} km")
+                    cat_pnt, cat_len = routes.calculate_category_route(runner.category.name)
+                    if cat_pnt and cat_len:
+                        controls = "-".join(
+                            [sess.scalars(Select(Control).where(Control.id == p.id)).one().name for p in cat_pnt if
+                             p.id not in [9998, 9999]])
+                        line(f"Optim.: {(cat_len / 1000):.2f} km ({controls})" + (
+                            f", +{(lng - (cat_len / 1000)):.2f} km" if (len(cat_pnt) - 2) <= result.tx else ""))
+                        line()
+
                 if not snura:
                     self.printer.set(bold=True)
                     line("Výsledky:")

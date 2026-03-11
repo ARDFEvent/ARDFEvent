@@ -13,7 +13,7 @@ struct Control {
 }
 
 struct Person {
-    id: u64,
+    id: i64,
     name: String,
     club: String,
     si: i64,
@@ -175,7 +175,7 @@ pub fn calculate_category(_py: Python, _db_path: String, _name: String, _include
         finish: Option<DateTime<Utc>>,
     ) {
         results.push(OResult {
-            id: per.id,
+            id: per.id as u64,
             name: per.name.clone(),
             reg: per.reg.clone(),
             si: per.si,

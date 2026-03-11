@@ -2,6 +2,7 @@ use pyo3::prelude::*;
 
 mod results;
 mod routes;
+mod routes_py;
 
 #[pymodule]
 fn ardfevent_rust(py: Python, m: &Bound<'_, PyModule>) -> PyResult<()> {
@@ -16,6 +17,7 @@ fn ardfevent_rust(py: Python, m: &Bound<'_, PyModule>) -> PyResult<()> {
     let routes_submodule = PyModule::new(py, "ardfevent_rust.routes")?;
     routes_submodule.add_function(wrap_pyfunction!(crate::routes::point_dist, &routes_submodule)?)?;
     routes_submodule.add_function(wrap_pyfunction!(crate::routes::optimal_route, &routes_submodule)?)?;
+    routes_submodule.add_class::<crate::routes_py::RouteEngine>()?;
     routes_submodule.add_class::<crate::routes::Point>()?;
     m.add("routes", &routes_submodule)?;
     py.import("sys")?

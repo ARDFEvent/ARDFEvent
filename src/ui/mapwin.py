@@ -115,6 +115,10 @@ class MapHandler(QObject):
             if control:
                 control.lat = lat
                 control.lon = lon
+
+                for category in control.categories:
+                    routes.invalidate_cache(category.name)
+
                 session.commit()
         self.mw.map_win.change_category()
 
@@ -241,7 +245,7 @@ class MapHandler(QObject):
 
         self.removePaths.emit()
 
-        res = routes.calculate_category_route(self.mw.db, self.mw.map_win.selected_category)
+        res = routes.calculate_category_route(self.mw.map_win.selected_category)
         if res:
             points, length = res
             last = points[0]
@@ -442,7 +446,7 @@ class MapWindow(QWidget):
 
     def change_category(self):
         self.category_name_lbl.setText(self.selected_category)
-        self.category_length_lbl.setText(routes.get_cat_lenght_str(self.mw.db, self.selected_category))
+        self.category_length_lbl.setText(routes.get_cat_lenght_str(self.selected_category))
         starts_finishes = api.get_starts_finishes(self.mw.db)
         if self.mw.map_win.selected_category and (
                 not starts_finishes["categories"].get(self.mw.map_win.selected_category)) and len(
@@ -480,7 +484,7 @@ class MapWindow(QWidget):
 
             for i, cat in enumerate(categories):
                 self.categories_table.setItem(i, 0, QTableWidgetItem(cat.name))
-                self.categories_table.setItem(i, 1, QTableWidgetItem(routes.get_cat_lenght_str(self.mw.db, cat.name)))
+                self.categories_table.setItem(i, 1, QTableWidgetItem(routes.get_cat_lenght_str(cat.name)))
 
     def update_problems(self):
         points = []

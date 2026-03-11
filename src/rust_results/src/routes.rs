@@ -5,11 +5,11 @@ use itertools::Itertools;
 #[derive(Clone)]
 pub struct Point {
     #[pyo3(get, set)]
-    id: i32,
+    pub id: i32,
     #[pyo3(get, set)]
-    lat: f64,
+    pub lat: f64,
     #[pyo3(get, set)]
-    lon: f64,
+    pub lon: f64,
 }
 
 #[pymethods]

@@ -18,6 +18,7 @@ from PySide6.QtWidgets import (
 
 import api
 import models
+import routes
 from ui import (
     basicinfowin,
     categorieswin,
@@ -279,6 +280,8 @@ class RaceWindow(QWidget):
         models.Base.metadata.create_all(self.db)
 
         api.migrate_basic_info(self.db)
+
+        routes.init_engine(self.db)
 
         self.basicinfo_win = basicinfowin.BasicInfoWindow(self)
         self.controls_win = controlswin.ControlsWindow(self)

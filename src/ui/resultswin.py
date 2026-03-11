@@ -188,13 +188,14 @@ class ResultsWindow(QWidget):
             self.results_table.horizontalHeader().setSectionResizeMode(
                 QHeaderView.ResizeMode.ResizeToContents
             )
-            self.results_table.setColumnCount(6)
+            self.results_table.setColumnCount(7)
             self.results_table.setRowCount(1000)
 
             row = 0
 
             for category in categories:
                 results_cat = results.calculate_category(self.mw.db, category.name, True)
+                cp, crl = routes.calculate_category_route(category.name)
 
                 if not len(results_cat):
                     continue
@@ -237,12 +238,19 @@ class ResultsWindow(QWidget):
                                 results.format_delta(timedelta(seconds=person.time))
                             ),
                         )
-                        rl = routes.calculate_runner_route(self.mw.db, person.id)
+                        rl = routes.calculate_runner_route(person.id)
                         self.results_table.setItem(
                             row,
                             5,
                             QTableWidgetItem(
-                                f"{round(rl, 2)} km" if rl else "-"
+                                f"{rl:.2f} km" if rl else "-"
+                            ),
+                        )
+                        self.results_table.setItem(
+                            row,
+                            6,
+                            QTableWidgetItem(
+                                f"+{(rl - (crl / 1000)):.2f} km" if rl and crl and (len(cp) - 2) <= person.tx else "-"
                             ),
                         )
 
