@@ -53,10 +53,10 @@ a = Analysis(
 )
 
 unwanted = {
-    'WebEngine', 'Qt6WebEngine', 'Qt63D', '3DCore', '3DRender', '3DInput',
-    '3DLogic', '3DExtras', '3DAnimation', 'Bluetooth', 'Qt6Nfc',
-    'RemoteObjects', 'Sensors', 'SerialPort', 'Sql', 'Test',
-    'Charts', 'DataVisualization', 'Pdf', 'VirtualKeyboard'
+    'QtWebEngine', 'Qt6WebEngine', 'Qt63D', 'Qt3DCore', 'Qt3DRender', 'Qt3DInput',
+    'Qt3DLogic', 'Qt3DExtras', 'Qt3DAnimation', 'QtBluetooth', 'Qt6Nfc',
+    'QtRemoteObjects', 'QtSensors', 'QtSerialPort', 'QtSql', 'QtTest',
+    'QtCharts', 'QtDataVisualization', 'QtPdf', 'QtVirtualKeyboard'
 }
 
 a.binaries = [x for x in a.binaries if not any(bad.lower() in x[0].lower() or bad.lower() in x[1].lower() for bad in unwanted)]

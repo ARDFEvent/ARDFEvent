@@ -23,10 +23,10 @@ jobs:
 
       - name: Setup Conda (Windows)
         if: runner.os == 'Windows'
-        uses: conda-incubator/setup-miniconda@v3
+        uses: conda-incubator/setup-miniconda@v2
         with:
           auto-update-conda: true
-          python-version: "3.14"
+          python-version: "3.12"
           channels: conda-forge
           activate-environment: build_env
 
@@ -41,13 +41,14 @@ jobs:
         if: runner.os == 'Linux'
         uses: actions/setup-python@v5
         with:
-          python-version: '3.14'
+          python-version: '3.12'
 
       - name: Install Linux Dependencies
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libgdal-dev gdal-bin libxcb-cursor0 binutils
+          sudo apt-get install -y libgdal-dev gdal-bin libxcb-cursor0 binutils python3-gdal default-libmysqlclient-dev
+          pip install gdal
           
           echo "CPLUS_INCLUDE_PATH=/usr/include/gdal" >> $GITHUB_ENV
           echo "C_INCLUDE_PATH=/usr/include/gdal" >> $GITHUB_ENV
