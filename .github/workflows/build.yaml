@@ -35,7 +35,6 @@ jobs:
         shell: bash -l {0}
         run: |
           conda install -y gdal
-          pip install gdal
 
       - name: Set up Python (Linux)
         if: runner.os == 'Linux'
@@ -63,7 +62,7 @@ jobs:
       - name: Run Pre-build Scripts (Windows)
         if: runner.os == 'Windows'
         shell: bash -l {0}
-        run: .\build.bat
+        run: ./build.bat
 
       - name: Run Pre-build Scripts (Linux)
         if: runner.os == 'Linux'
