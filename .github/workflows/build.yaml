@@ -60,17 +60,22 @@ jobs:
           python -m pip install --upgrade pip
           pip install pyinstaller
 
-      - name: Run Pre-build Scripts
-          shell: bash -l {0}
-          run: |
-            if [ "$RUNNER_OS" == "Windows" ]; then
-              ./build.bat
-            else
-              chmod +x build.sh && ./build.sh
-            fi
-
-      - name: PyInstaller Build (using .spec)
+      - name: Run Pre-build Scripts (Windows)
+        if: runner.os == 'Windows'
         shell: bash -l {0}
+        run: .\build.bat
+
+      - name: Run Pre-build Scripts (Linux)
+        if: runner.os == 'Linux'
+        run: chmod +x build.sh && ./build.sh
+
+      - name: PyInstaller Build (using .spec, Windows)
+        if: runner.os == 'Windows'
+        shell: bash -l {0}
+        run: pyinstaller --noconfirm ARDFEvent.spec
+
+      - name: PyInstaller Build (Linux)
+        if: runner.os == 'Linux'
         run: pyinstaller --noconfirm ARDFEvent.spec
 
       - name: Create Linux Artifacts
