@@ -48,7 +48,6 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libgdal-dev gdal-bin libxcb-cursor0 binutils python3-gdal default-libmysqlclient-dev
-          pip install gdal
           
           echo "CPLUS_INCLUDE_PATH=/usr/include/gdal" >> $GITHUB_ENV
           echo "C_INCLUDE_PATH=/usr/include/gdal" >> $GITHUB_ENV
