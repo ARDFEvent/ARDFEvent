@@ -1,9 +1,17 @@
 # -*- mode: python ; coding: utf-8 -*-
-from PyInstaller.utils.hooks import collect_all
+import os
+import sys
+import gdal
+from PyInstaller.utils.hooks import collect_all, collect_dynamic_libs, collect_data_files
 
 datas = [('src/web/static', 'web/static/'), ('src/exports/templates', 'exports/templates/'), ('src/ui/qml', 'ui/qml/')]
 binaries = []
 hiddenimports = []
+
+gdal_lib_path = os.path.dirname(gdal.__file__)
+gdal_binaries = collect_dynamic_libs('gdal')
+gdal_data = collect_data_files('gdal')
+
 tmp_ret = collect_all('escpos')
 datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
 
@@ -27,7 +35,7 @@ a = Analysis(
     hiddenimports=hiddenimports,
     hookspath=[],
     hooksconfig={},
-    runtime_hooks=[],
+    runtime_hooks=["hooks/rthook_gdal.py"],
     excludes=[
         'PySide6.QtWebEngineCore',
         'PySide6.QtWebEngineWidgets',
@@ -52,11 +60,19 @@ a = Analysis(
     optimize=0,
 )
 
+def is_unsafe_system_lib(name):
+    if sys.platform.startswith('linux'):
+        critical_linux_libs = ['libstdc++.so.6', 'libgcc_s.so.1', 'libglib-2.0.so.0']
+        return any(name.startswith(lib) for lib in critical_linux_libs)
+    return False
+
+a.binaries = [x for x in a.binaries if not is_unsafe_system_lib(x[0])]
+
 unwanted = {
-    'QtWebEngine', 'Qt6WebEngine', 'Qt63D', 'Qt3DCore', 'Qt3DRender', 'Qt3DInput',
-    'Qt3DLogic', 'Qt3DExtras', 'Qt3DAnimation', 'QtBluetooth', 'Qt6Nfc',
-    'QtRemoteObjects', 'QtSensors', 'QtSerialPort', 'QtSql', 'QtTest',
-    'QtCharts', 'QtDataVisualization', 'QtPdf', 'QtVirtualKeyboard'
+    'WebEngine', 'Qt6WebEngine', 'Qt63D', '3DCore', '3DRender', '3DInput',
+    '3DLogic', '3DExtras', '3DAnimation', 'Bluetooth', 'Nfc',
+    'RemoteObjects', 'Sensors', 'SerialPort', 'QtSql', 'Test',
+    'Charts', 'DataVisualization', 'Pdf', 'VirtualKeyboard'
 }
 
 a.binaries = [x for x in a.binaries if not any(bad.lower() in x[0].lower() or bad.lower() in x[1].lower() for bad in unwanted)]
