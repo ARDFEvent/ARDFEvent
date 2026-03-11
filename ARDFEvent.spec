@@ -1,7 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 import os
 import sys
-import gdal
+from osgeo import gdal
 from PyInstaller.utils.hooks import collect_all, collect_dynamic_libs, collect_data_files
 
 datas = [('src/web/static', 'web/static/'), ('src/exports/templates', 'exports/templates/'), ('src/ui/qml', 'ui/qml/')]
