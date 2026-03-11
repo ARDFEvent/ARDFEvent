@@ -3,6 +3,7 @@ BYellow='\033[1;33m'
 BPurple='\033[1;35m'
 BIPurple='\033[1;95m'
 BIGreen='\033[1;92m'
+BIRed='\033[1;91m'
 
 echo -e "${BIPurple}Cleanup...${Color_Off}"
 rm i18n/ARDFEvent_en.qm | true
@@ -19,8 +20,13 @@ else
 fi
 source .venv/bin/activate
 echo -e "${BIPurple}Begin essentials build process...${Color_Off}"
+gdal-config --version &> /dev/null || { echo -e "${BIRed}GDAL not found${Color_Off}"; exit 1; }
+GDAL_VER=$(gdal-config --version | cut -d' ' -f1)
+echo -e "${BIGreen}Installing GDAL $GDAL_VER...${Color_Off}"
+pip install "gdal==$GDAL_VER"
 echo -e "${BPurple}Install requirements using pip${Color_Off}"
 pip install -r requirements.txt
+pip install pygobject
 cd src/rust_results || exit
 echo -e "${BYellow}Install required rust libraries using cargo${Color_Off}"
 cargo fetch
