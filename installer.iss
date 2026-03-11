@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "JJ ARDFEvent"
-#define MyAppVersion "1.0"
+#define MyAppVersion "1.1-beta1"
 #define MyAppPublisher "JJ Soft"
 #define MyAppURL "https://github.com/ARDFEvent/ARDFEvent"
 #define MyAppExeName "ARDFEvent.exe"
