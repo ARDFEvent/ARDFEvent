@@ -19,6 +19,7 @@ from PySide6.QtWidgets import (
 import api
 import models
 import routes
+from exports import base_reports
 from ui import (
     basicinfowin,
     categorieswin,
@@ -243,6 +244,8 @@ class MainWindow(QMainWindow):
 
         self.db = self.racewin.db
 
+        self.racewin.pl = self.pl
+
         self.racewin._show()
 
     def _push_last(self, file):
@@ -354,6 +357,8 @@ class RaceWindow(QWidget):
 
         self.stack.setCurrentIndex(0)
         self.sidebar.set_current(0)
+
+        base_reports.register_base_reports(self)
 
     def _show(self):
         try:

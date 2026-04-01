@@ -3,7 +3,7 @@ from typing import Callable
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QHBoxLayout, QTreeWidget, QFormLayout, QVBoxLayout, QPushButton, QTreeWidgetItem, QWidget, \
-    QCheckBox, QHeaderView
+    QCheckBox, QHeaderView, QFileDialog
 
 from ui.previewwin import PreviewWindow
 
@@ -53,9 +53,13 @@ class ReportWindow(QWidget):
 
         rightlay.addStretch()
 
-        calc_btn = QPushButton("Generovat")
-        calc_btn.clicked.connect(self._generate_report)
-        rightlay.addWidget(calc_btn)
+        direxp_btn = QPushButton("Export")
+        direxp_btn.clicked.connect(self._export_report)
+        rightlay.addWidget(direxp_btn)
+
+        preview_btn = QPushButton("Náhled")
+        preview_btn.clicked.connect(self._preview_report)
+        rightlay.addWidget(preview_btn)
 
     def _show(self):
         self.report_widget.clear()
@@ -75,7 +79,7 @@ class ReportWindow(QWidget):
                 widget = QPushButton(f"Neznámý typ {arg_type}")
             self.form_lay.addRow(arg_name, widget)
 
-    def _generate_report(self):
+    def _gen_current_report(self):
         item = self.report_widget.currentItem()
         if not item:
             return
@@ -88,8 +92,19 @@ class ReportWindow(QWidget):
                 args.append(field.isChecked())
             else:
                 print(f"Neznámý widget {field} pro argument {label}")
-                return
-        self.pws.append(PreviewWindow(report.func(self.mw.db, *args)))
+                return ""
+        return report.func(self.mw.db, *args)
+
+    def _export_report(self):
+        fn, ok = QFileDialog.getSaveFileName(self, "Exportovat sestavu", filter="HTML (*.html)")
+        if ok:
+            if not fn.endswith(".html"):
+                fn += ".html"
+            with open(fn, "w+") as f:
+                f.write(self._gen_current_report())
+
+    def _preview_report(self):
+        self.pws.append(PreviewWindow(self._gen_current_report()))
 
     def closeEvent(self, event):
         [win.close() for win in self.pws]

@@ -104,22 +104,29 @@ class MapHandler(QObject):
             if cid_str.startswith("START-"):
                 if idx < len(starts_finishes.get("starts", [])):
                     starts_finishes["starts"][idx] = {"lat": lat, "lon": lon}
+                for category in starts_finishes["categories"].keys():
+                    if starts_finishes["categories"][category]["start"] == idx:
+                        routes.invalidate_cache(category)
             else:
                 if idx < len(starts_finishes.get("finishes", [])):
-                    starts_finishes["finishes"][idx] = {"lat": lat, "lon": lon}
+                    starts_finishes["categories"]["finishes"][idx] = {"lat": lat, "lon": lon}
+                for category in starts_finishes["categories"].keys():
+                    if starts_finishes[category]["finish"] == idx:
+                        routes.invalidate_cache(category)
             api.set_basic_info(self.mw.db, {"map_starts_finishes": json.dumps(starts_finishes)})
-            self.update_map_items()
-            return
-        with Session(self.mw.db) as session:
-            control = session.scalars(Select(Control).where(Control.id == int(cid_str))).one_or_none()
-            if control:
-                control.lat = lat
-                control.lon = lon
+        else:
+            with Session(self.mw.db) as session:
+                control = session.scalars(Select(Control).where(Control.id == int(cid_str))).one_or_none()
+                if control:
+                    control.lat = lat
+                    control.lon = lon
 
-                for category in control.categories:
-                    routes.invalidate_cache(category.name)
+                    for category in control.categories:
+                        routes.invalidate_cache(category.name)
 
-                session.commit()
+                    session.commit()
+        print("updejt")
+        self.update_map_items()
         self.mw.map_win.change_category()
 
     @Slot(str)

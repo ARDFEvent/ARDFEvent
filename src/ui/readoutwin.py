@@ -295,8 +295,10 @@ class ReadoutWindow(QWidget):
             text(string + "\n")
 
         try:
-            if not isinstance(self.printer, Usb):
-                self.printer.open()
+            if self.rdowin.printer and os.name == "nt":
+                from escpos.printer import Win32Raw
+                if isinstance(self.rdowin.printer, Win32Raw):
+                    self.printer.open()
             with Session(self.mw.db) as sess:
                 runner = sess.scalars(Select(Runner).where(Runner.si == si)).one()
                 basic_info = api.get_basic_info(self.mw.db)
@@ -480,8 +482,10 @@ class ReadoutWindow(QWidget):
                         print(self.printer.output)
                     self.printer.clear()
         finally:
-            if self.printer and not isinstance(self.printer, Usb):
-                self.printer.close()
+            if self.rdowin.printer and os.name == "nt":
+                from escpos.printer import Win32Raw
+                if isinstance(self.rdowin.printer, Win32Raw):
+                    self.printer.close()
 
 
 class PrinterOptions:
@@ -629,8 +633,11 @@ class PrinterSetupDialog(QDialog):
             self.rdowin.printer = Dummy()
 
         try:
-            if not isinstance(self.rdowin.printer, Usb):
-                self.rdowin.printer.open()
+            if os.name == "nt":
+                from escpos.printer import Win32Raw
+                if isinstance(self.rdowin.printer, Win32Raw):
+                    self.rdowin.printer.open()
+
             self.rdowin.printer.charcode("CP852")
 
             self.rdowin.printer_optns = PrinterOptions(self.paper_edit.currentText() == "80 mm",
@@ -643,8 +650,10 @@ class PrinterSetupDialog(QDialog):
             if self.cut_check.isChecked():
                 self.rdowin.printer.cut()
         finally:
-            if self.rdowin.printer and not isinstance(self.rdowin.printer, Usb):
-                self.rdowin.printer.close()
+            if self.rdowin.printer and os.name == "nt":
+                from escpos.printer import Win32Raw
+                if isinstance(self.rdowin.printer, Win32Raw):
+                    self.rdowin.printer.open()
         self.close()
 
     def _epson_preset(self):

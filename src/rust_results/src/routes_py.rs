@@ -182,20 +182,25 @@ impl RouteEngine {
     }
 
     fn resolve_cat_sf(&self, sf: &StartsFinishes, cat_name: &str) -> PyResult<(routes::Point, routes::Point, (i64, i64))> {
-        let config = sf.categories.get(cat_name)
-            .ok_or_else(|| PyErr::new::<pyo3::exceptions::PyKeyError, _>(format!("Category {} not found", cat_name)))?;
+        let config = sf.categories.get(cat_name);
 
-        if config.start.is_none() || config.finish.is_none() {
+        let fin_conf = if config.is_none() {
+            CategoryConfig { start: Some(0), finish: Some(0) }
+        } else {
+            config.unwrap().clone()
+        };
+
+        if fin_conf.start.is_none() || fin_conf.finish.is_none() {
             return Ok((routes::Point {id: 9998, lat: 0.0, lon: 0.0}, routes::Point {id: 9999, lat: 0.0, lon: 0.0}, (-1, -1)));
         }
 
-        let start = sf.starts.get(config.start.unwrap())
+        let start = sf.starts.get(fin_conf.start.unwrap())
             .ok_or_else(|| PyErr::new::<pyo3::exceptions::PyIndexError, _>("Start index out of bounds"))?;
 
-        let finish = sf.finishes.get(config.finish.unwrap())
+        let finish = sf.finishes.get(fin_conf.finish.unwrap())
             .ok_or_else(|| PyErr::new::<pyo3::exceptions::PyIndexError, _>("Finish index out of bounds"))?;
 
-        Ok((routes::Point {id: 9998, lat: start.lat, lon: start.lon}, routes::Point {id: 9999, lat: finish.lat, lon: finish.lon}, (config.start.unwrap() as i64, config.finish.unwrap() as i64)))
+        Ok((routes::Point {id: 9998, lat: start.lat, lon: start.lon}, routes::Point {id: 9999, lat: finish.lat, lon: finish.lon}, (fin_conf.start.unwrap() as i64, fin_conf.finish.unwrap() as i64)))
     }
 }
 

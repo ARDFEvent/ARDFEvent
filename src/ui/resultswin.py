@@ -25,7 +25,6 @@ import routes
 from models import Category
 from ui.previewwin import PreviewWindow
 from ui.qtaiconbutton import QTAIconButton
-from ui.reportwin import Report, ReportType
 from web.webserver import ARDFEventServer
 
 
@@ -96,15 +95,6 @@ class ResultsWindow(QWidget):
         self.results_table = QTableWidget()
         self.results_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         lay.addWidget(self.results_table)
-
-        self.mw.reports.append(Report(
-            report_type=ReportType.RESULTS,
-            name=QCoreApplication.translate("ResultsWindow", "Výsledky"),
-            description=QCoreApplication.translate("ResultsWindow", "Výsledky závodu"),
-            source="ARDFEvent",
-            func=res_html.generate,
-            args={"Mezičasy": "bool"}
-        ))
 
     def _set_webserver_announcement(self):
         ann, ok = QInputDialog.getText(self, QCoreApplication.translate("ResultsWindow", "Změna hlášení"),
