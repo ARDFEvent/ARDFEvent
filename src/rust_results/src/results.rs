@@ -1,5 +1,6 @@
 use pyo3::prelude::*;
 use chrono::{DateTime, Utc};
+use std::collections::{HashMap, HashSet};
 
 struct BasicInfo {
     key: String,
@@ -92,14 +93,18 @@ impl OResult {
 
 #[pyfunction]
 pub fn calculate_category(_py: Python, _db_path: String, _name: String, _include_unknown: bool, now: i64) -> PyResult<Vec<OResult>> {
+
     let mut results: Vec<OResult> = Vec::new();
 
     let conn = rusqlite::Connection::open(&_db_path)
-        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("Database error: {e}")))?;
+        .map_err(|e| {
+            PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("Database error: {e}"))
+        })?;
 
     let mut _basicinfo_stmt = conn.prepare("SELECT key, value from basicinfo;")
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("Database error: {e}")))?;
-    let _basicinfo: Vec<BasicInfo> = _basicinfo_stmt.query_map([], |row| {
+
+    let _basicinfo_vec: Vec<BasicInfo> = _basicinfo_stmt.query_map([], |row| {
         Ok(BasicInfo {
             key: row.get(0)?,
             value: row.get(1)?,
@@ -108,10 +113,12 @@ pub fn calculate_category(_py: Python, _db_path: String, _name: String, _include
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("Database error: {e}")))?
         .filter_map(Result::ok)
         .collect();
+    let _basicinfo: HashMap<String, String> = _basicinfo_vec.into_iter().map(|bi| (bi.key, bi.value)).collect();
 
     let mut _allcontrols_stmt = conn.prepare("SELECT name, code from controls;")
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("Database error: {e}")))?;
-    let _allcontrols: Vec<Control> = _allcontrols_stmt.query_map([], |row| {
+
+    let _allcontrols_vec: Vec<Control> = _allcontrols_stmt.query_map([], |row| {
         Ok(Control {
             name: row.get(0)?,
             code: row.get(1)?,
@@ -120,10 +127,11 @@ pub fn calculate_category(_py: Python, _db_path: String, _name: String, _include
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("Database error: {e}")))?
         .filter_map(Result::ok)
         .collect();
+    let _allcontrols: HashMap<i32, String> = _allcontrols_vec.into_iter().map(|c| (c.code, c.name)).collect();
 
     let mut _loccontrols_stmt = conn.prepare("SELECT name, code from controls where id in (SELECT control_id from control_associations where category_id in (SELECT id from categories where name = ?1));")
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("Database error: {e}")))?;
-    let _loccontrols: Vec<Control> = _loccontrols_stmt.query_map([&_name], |row| {
+    let _loccontrols_vec: Vec<Control> = _loccontrols_stmt.query_map([&_name], |row| {
         Ok(Control {
             name: row.get(0)?,
             code: row.get(1)?,
@@ -132,10 +140,12 @@ pub fn calculate_category(_py: Python, _db_path: String, _name: String, _include
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("Database error: {e}")))?
         .filter_map(Result::ok)
         .collect();
+
+    let _loccontrols: HashMap<i32, String> = _loccontrols_vec.into_iter().map(|c| (c.code, c.name)).collect();
 
     let mut _mandcontrols_stmt = conn.prepare("SELECT name, code from controls where mandatory = 1 and id in (SELECT control_id from control_associations where category_id in (SELECT id from categories where name = ?1));")
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("Database error: {e}")))?;
-    let _mandcontrols: Vec<Control> = _mandcontrols_stmt.query_map([&_name], |row| {
+    let _mandcontrols_vec: Vec<Control> = _mandcontrols_stmt.query_map([&_name], |row| {
         Ok(Control {
             name: row.get(0)?,
             code: row.get(1)?,
@@ -145,23 +155,49 @@ pub fn calculate_category(_py: Python, _db_path: String, _name: String, _include
         .filter_map(Result::ok)
         .collect();
 
-    let mut persons_stmt = conn.prepare("SELECT name, club, si, reg, startlist_time, manual_dns, manual_disk, id from runners where category_id = (SELECT id from categories where name = ?1);")
+    let _mandcontrols: HashSet<i32> = _mandcontrols_vec.into_iter().map(|c| c.code).collect();
+
+    let mut category_id_query = conn.prepare("SELECT id from categories where name = ?1;")
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("Database error: {e}")))?;
-    let persons: Vec<Person> = persons_stmt.query_map([&_name], |row| {
-        Ok(Person {
-            name: row.get(0)?,
-            club: row.get(1)?,
-            si: row.get(2)?,
-            reg: row.get(3)?,
-            startlist_time: row.get(4).ok(),
-            manual_dns: row.get(5)?,
-            manual_disk: row.get(6)?,
-            id: row.get(7)?,
+    let category_id: Option<i64> = category_id_query.query_row([&_name], |row| row.get(0)).ok();
+
+    let mut persons_stmt = conn.prepare("SELECT name, club, si, reg, startlist_time, manual_dns, manual_disk, id from runners where category_id = ?1;")
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("Database error: {e}")))?;
+    let persons: Vec<Person> = if let Some(cat_id) = category_id {
+        persons_stmt.query_map([cat_id], |row| {
+            Ok(Person {
+                name: row.get(0)?,
+                club: row.get(1)?,
+                si: row.get(2)?,
+                reg: row.get(3)?,
+                startlist_time: row.get(4).ok(),
+                manual_dns: row.get(5)?,
+                manual_disk: row.get(6)?,
+                id: row.get(7)?,
+            })
         })
-    })
-        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("Database error: {e}")))?
-        .filter_map(Result::ok)
-        .collect();
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("Database error: {e}")))?
+            .filter_map(Result::ok)
+            .collect()
+    } else {
+        Vec::new()
+    };
+
+    let mut punches_map: HashMap<i64, Vec<Punch>> = HashMap::new();
+    if let Some(cat_id) = category_id {
+        let mut punches_stmt = conn.prepare("SELECT p.si, p.code, p.time FROM punches p JOIN runners r ON p.si = r.si WHERE r.category_id = ?1 ORDER BY p.si, p.time;")
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("Database error: {e}")))?;
+        let _all_punches: Vec<(i64, i32, DateTime<Utc>)> = punches_stmt.query_map([cat_id], |row| {
+            Ok((row.get(0)?, row.get(1)?, row.get(2)?))
+        })
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("Database error: {e}")))?
+            .filter_map(Result::ok)
+            .collect();
+
+        for (si, code, time) in _all_punches {
+            punches_map.entry(si).or_insert_with(Vec::new).push(Punch { code, time });
+        }
+    }
 
     fn push_result(
         results: &mut Vec<OResult>,
@@ -200,17 +236,9 @@ pub fn calculate_category(_py: Python, _db_path: String, _name: String, _include
             continue;
         }
 
-        let mut punches_stmt = conn.prepare("SELECT code, time from punches where si = ?1 ORDER BY time;")
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("Database error: {e}")))?;
-        let punches: Vec<Punch> = punches_stmt.query_map([&per.si], |row| {
-            Ok(Punch {
-                code: row.get(0)?,
-                time: row.get(1)?,
-            })
-        })
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("Database error: {e}")))?
-            .filter_map(Result::ok)
-            .collect();
+        let default_vec_punch: &Vec<Punch> = &Vec::new();
+        let punches_ref: &Vec<Punch> = punches_map.get(&per.si).unwrap_or(default_vec_punch);
+        let punches: &Vec<Punch> = punches_ref;
 
         let mut tx: i32 = 0;
         let mut mandatory_cnt: i32 = 0;
@@ -218,8 +246,8 @@ pub fn calculate_category(_py: Python, _db_path: String, _name: String, _include
         let mut finish: Option<DateTime<Utc>> = None;
         let mut order: Vec<(String, DateTime<Utc>, String)> = Vec::new();
 
-        let mut loccontrols = _loccontrols.to_vec();
-        let mut mandcontrols = _mandcontrols.to_vec();
+        let mut loccontrols = _loccontrols.clone();
+        let mut mandcontrols = _mandcontrols.clone();
 
         if punches.is_empty() {
             if _include_unknown {
@@ -228,33 +256,30 @@ pub fn calculate_category(_py: Python, _db_path: String, _name: String, _include
             continue;
         }
 
-        for punch in &punches {
+        for punch in punches {
             if punch.code == 1000 {
                 start = Some(punch.time);
             } else if punch.code == 1001 {
                 finish = Some(punch.time);
             }
 
-            if let Some(index) = loccontrols.iter().position(|control| control.code == punch.code) {
-                let control = &loccontrols[index];
+            if let Some(name) = loccontrols.remove(&punch.code) {
                 tx += 1;
-                order.push((control.name.clone(), punch.time, "OK".to_string()));
-                loccontrols.remove(index);
-            } else if let Some(control) = _allcontrols.iter().find(|control| control.code == punch.code) {
-                order.push((control.name.clone() + "+", punch.time, "AP".to_string()));
+                order.push((name, punch.time, "OK".to_string()));
+            } else if let Some(name) = _allcontrols.get(&punch.code) {
+                order.push((format!("{}+", name), punch.time, "AP".to_string()));
             }
 
-            if let Some(index) = mandcontrols.iter().position(|control| control.code == punch.code) {
+            if mandcontrols.remove(&punch.code) {
                 mandatory_cnt += 1;
-                mandcontrols.remove(index);
             }
         }
 
         let mut status = "OK";
 
         if start.is_none() {
-            if let Some(date_tzero) = _basicinfo.iter().find(|bi| bi.key == "DATE_TIME") {
-                start = Some(DateTime::parse_from_rfc3339(date_tzero.value.as_str()).unwrap().to_utc());
+            if let Some(date_tzero) = _basicinfo.get("DATE_TIME") {
+                start = Some(DateTime::parse_from_rfc3339(date_tzero.as_str()).unwrap().to_utc());
             } else {
                 push_result(&mut results, per, "DNS", 0, 0, vec![], 0, None, finish);
             }
@@ -267,8 +292,8 @@ pub fn calculate_category(_py: Python, _db_path: String, _name: String, _include
 
         if (mandatory_cnt < _mandcontrols.len() as i32 || tx - mandatory_cnt < 1) && status == "OK" {
             status = "MP";
-        } else if let Some(limit) = _basicinfo.iter().find(|bi| bi.key == "LIMIT") {
-            if limit.value.parse::<i64>().unwrap_or_default() * 60 < finish.unwrap().timestamp() - start.unwrap().timestamp() {
+        } else if let Some(limit_value) = _basicinfo.get("LIMIT").or(_basicinfo.get("limit")) {
+            if limit_value.parse::<i64>().unwrap_or_default() * 60 < finish.unwrap().timestamp() - start.unwrap().timestamp() {
                 status = "OVT";
             }
         }
