@@ -39,7 +39,7 @@ def test_preset_all_applies_to_db(qtbot, fake_mw):
     assert "M" in names
 
 
-def test_add_edit_save_cycle(qtbot, fake_mw):
+def test_add_edit_save_cycle(qtbot, fake_mw, faker):
     win = ControlsWindow(fake_mw)
     qtbot.addWidget(win)
 
@@ -47,14 +47,19 @@ def test_add_edit_save_cycle(qtbot, fake_mw):
     assert add_btn is not None
     qtbot.mouseClick(add_btn, Qt.LeftButton)
 
-    win.table.item(0, 0).setText("X")
-    win.table.item(0, 1).setText("123")
+    name = faker.word()
+    code = faker.random_int(min=31, max=999)
+    lat = float(faker.latitude())
+    lon = float(faker.longitude())
+
+    win.table.item(0, 0).setText(name)
+    win.table.item(0, 1).setText(str(code))
 
     win.table.item(0, 2).setCheckState(Qt.CheckState.Checked)
     win.table.item(0, 3).setCheckState(Qt.CheckState.Checked)
 
-    win.table.item(0, 4).setText("12.34")
-    win.table.item(0, 5).setText("56.78")
+    win.table.item(0, 4).setText(str(lat))
+    win.table.item(0, 5).setText(str(lon))
 
     save_btn = find_button_by_tooltip(win, "Uložit")
     assert save_btn is not None
@@ -67,10 +72,10 @@ def test_add_edit_save_cycle(qtbot, fake_mw):
 
     assert len(rows) == 1
     c = rows[0]
-    assert c.name == "X"
-    assert c.code == 123
+    assert c.name == name
+    assert c.code == code
     
     assert c.mandatory is True
     assert c.spectator is True
-    assert c.lat == pytest.approx(12.34)
-    assert c.lon == pytest.approx(56.78)
+    assert c.lat == pytest.approx(lat, abs=0.001)
+    assert c.lon == pytest.approx(lon, abs=0.001)

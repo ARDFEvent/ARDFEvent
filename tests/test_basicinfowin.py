@@ -23,12 +23,13 @@ def basic_win(qtbot, monkeypatch, mw):
         pass
 
 
-def test_show_populates_fields(basic_win, monkeypatch):
+def test_show_populates_fields(engine, basic_win, monkeypatch, faker):
+    dtzero = faker.date_time_this_decade()
     payload = {
-        "name": "Testový závod",
-        "date_tzero": "2025-05-10T09:30:00",
-        "organizer": "Pořadatel",
-        "limit": "120",
+        "name": " ".join([faker.word() for _ in range(5)]),
+        "date_tzero": dtzero.isoformat(),
+        "organizer": faker.company(),
+        "limit": str(faker.random_int(10, 180)),
         "band": "2m",
     }
 
@@ -36,46 +37,56 @@ def test_show_populates_fields(basic_win, monkeypatch):
 
     basic_win._show()
 
-    assert basic_win.name_edit.text() == "Testový závod"
+    assert basic_win.name_edit.text() == payload["name"]
 
     dt = basic_win.date_edit.dateTime().toPython()
-    assert dt.year == 2025 and dt.month == 5 and dt.day == 10 and dt.hour == 9 and dt.minute == 30
-    assert basic_win.org_edit.text() == "Pořadatel"
-    assert basic_win.limit_edit.value() == 120
+    assert dt.year == dtzero.year and dt.month == dtzero.month and dt.day == dtzero.day and dt.hour == dtzero.hour and dt.minute == dtzero.minute
+    assert basic_win.org_edit.text() == payload["organizer"]
+    assert basic_win.limit_edit.value() == int(payload["limit"])
     assert basic_win.band_select.currentText() == "2m"
 
 
-def test_save_calls_api_with_expected_structure(basic_win, monkeypatch, qtbot):
+def test_save_calls_api_with_expected_structure(basic_win, monkeypatch, qtbot, faker):
     called = {}
-
+    
+    # Generate random test data
+    name = faker.company()
+    org = faker.company()
+    dt = faker.date_time_this_year().replace(second=0, microsecond=0)
+    limit = faker.random_int(10, 180)
+    
     def fake_set_basic_info(db, info):
         called['db'] = db
         called['info'] = info
 
     monkeypatch.setattr(api, "set_basic_info", fake_set_basic_info)
 
-    qtbot.keyClicks(basic_win.name_edit, "Ulozeny zavod")
+    qtbot.keyClicks(basic_win.name_edit, name)
     qtbot.keyClick(basic_win.name_edit, Qt.Key_Tab)
 
-    qtbot.keyClicks(basic_win.org_edit, "Poradatel 2")
+    qtbot.keyClicks(basic_win.org_edit, org)
     qtbot.keyClick(basic_win.org_edit, Qt.Key_Tab)
 
-    basic_win.date_edit.setDateTime(datetime(2023, 7, 4, 14, 5, 9))
+    basic_win.date_edit.setDateTime(dt)
     qtbot.keyClick(basic_win.date_edit, Qt.Key_Tab)
 
-    basic_win.limit_edit.setValue(45)
+    basic_win.limit_edit.setValue(limit)
     qtbot.keyClick(basic_win.limit_edit, Qt.Key_Tab)
 
-    basic_win.band_select.setCurrentIndex(1)
+    # Randomly select a band index (0 or 1 usually)
+    idx = faker.random_int(0, 1)
+    basic_win.band_select.setCurrentIndex(idx)
+    expected_band = basic_win.band_select.itemText(idx)
 
     qtbot.wait(50)
-
+    basic_win._save()
+    
     assert called.get('db') == "DB"
     info = called.get('info')
     assert info is not None
 
-    assert info['name'] == "Ulozeny zavod"
-    assert info['organizer'] == "Poradatel 2"
-    assert info['date_tzero'] == datetime(2023, 7, 4, 14, 5, 0).isoformat()
-    assert info['limit'] == "45"
-    assert info['band'] == "80m"
+    assert info['name'] == name
+    assert info['organizer'] == org
+    assert info['date_tzero'] == dt.isoformat()
+    assert info['limit'] == str(limit)
+    assert info['band'] == expected_band

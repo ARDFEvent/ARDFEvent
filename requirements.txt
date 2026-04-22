@@ -19,4 +19,6 @@ setuptools<70.0.0
 certifi
 pytest
 pytest-qt
+faker
+pytest-faker
 # THERE IS NO GDAL, INSTALL IT BY YOUR VERSION OF GDAL ON THIS SYSTEM OR USE BUILD.SH

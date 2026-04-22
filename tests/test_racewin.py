@@ -5,7 +5,7 @@ from sqlalchemy import create_engine
 
 import api
 from models import Base
-from ui.mainwin import MainWindow, RaceWindow
+from ui.mainwin import RaceWindow
 
 
 @pytest.fixture(autouse=True)
@@ -25,23 +25,24 @@ def test_sidebar_buttons_exist_and_switch_pages(qtbot, tmp_path):
     Base.metadata.create_all(create_engine(f"sqlite:///{dbfile}"))
     win = RaceWindow(f"sqlite:///{dbfile}")
     qtbot.addWidget(win)
+    win.show()
     qtbot.waitExposed(win)
 
     buttons = [b for b in win.sidebar.findChildren(QToolButton)]
-    assert len(buttons) >= 2
+    assert len(buttons) >= 3
 
-    btn = buttons[1]
+    btn = buttons[2]
     qtbot.mouseClick(btn, Qt.LeftButton)
 
     assert win.stack.currentIndex() == 1
 
 
 def test_close_hides_window(qtbot, tmp_path):
-    win = MainWindow()
-    qtbot.addWidget(win)
     dbfile = tmp_path / "test_mainwin.db"
     Base.metadata.create_all(create_engine(f"sqlite:///{dbfile}"))
-    win.show(f"sqlite:///{dbfile}")
+    win = RaceWindow(f"sqlite:///{dbfile}")
+    qtbot.addWidget(win)
+    win.show()
     qtbot.waitExposed(win)
 
     win.close()
