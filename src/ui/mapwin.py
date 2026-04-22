@@ -363,6 +363,7 @@ class CSSettingsWindow(QWidget):
         self.start_edit.setValue(preset[1])
         self.control_edit.setValue(preset[2])
         self.start_edit.editingFinished.emit()
+        self.mw.map_win.update_problems()
 
 
 class MapWindow(QWidget):

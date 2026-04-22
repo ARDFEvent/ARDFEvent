@@ -18,7 +18,7 @@ LANGUAGES = {
     "cs": QLocale.Language.Czech,
 }
 
-if __name__ == "__main__":
+def run_application():
     multiprocessing.freeze_support()
     
     os.environ['SSL_CERT_FILE'] = certifi.where()
@@ -156,3 +156,6 @@ if __name__ == "__main__":
     win.showMaximized()
 
     app.exec()
+
+if __name__ == "__main__":
+    run_application()

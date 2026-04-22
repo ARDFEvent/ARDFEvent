@@ -295,9 +295,9 @@ class ReadoutWindow(QWidget):
             text(string + "\n")
 
         try:
-            if self.rdowin.printer and os.name == "nt":
+            if self.printer and os.name == "nt":
                 from escpos.printer import Win32Raw
-                if isinstance(self.rdowin.printer, Win32Raw):
+                if isinstance(self.printer, Win32Raw):
                     self.printer.open()
             with Session(self.mw.db) as sess:
                 runner = sess.scalars(Select(Runner).where(Runner.si == si)).one()
@@ -482,9 +482,9 @@ class ReadoutWindow(QWidget):
                         print(self.printer.output)
                     self.printer.clear()
         finally:
-            if self.rdowin.printer and os.name == "nt":
+            if self.printer and os.name == "nt":
                 from escpos.printer import Win32Raw
-                if isinstance(self.rdowin.printer, Win32Raw):
+                if isinstance(self.printer, Win32Raw):
                     self.printer.close()
 
 
