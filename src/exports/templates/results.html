@@ -83,21 +83,24 @@
 </head>
 
 <body>
-    <h1>{{ event.name }}</h1>
-    <h2>Výsledky</h2>
-    <span>Datum: <b>{{ event.date }}</b>, první start: <b>{{ event.first_start }}</b><br>Pořadatel: <b>{{ event.organizer }}</b><br>
+<h1>{{ event.name }}</h1>
+<h2>Výsledky</h2>
+<span>Datum: <b>{{ event.date }}</b>, první start: <b>{{ event.first_start }}</b><br>Pořadatel: <b>{{ event.organizer }}</b><br>
             Limit: <b>{{ event.limit }} min</b>, pásmo: <b>{{ event.band }}</b></span>
-    <br><br>
-    <table>
-        {% for category in categories %}
+<br><br>
+<table>
+    {% for category in categories %}
         <tbody style="page-break-inside: avoid;">
-            <tr>
-                <td colspan="6">
-                    <h3 style="display: inline-block;">{{ category.name }}</h3>
-                    <span>{{ category.controls }}</span>
-                </td>
-            </tr>
-            {% for runner in category.runners %}
+        <tr>
+            <td colspan="6">
+                <h3 style="display: inline-block;">{{ category.name }}</h3>
+                <span>{{ category.controls }}</span>
+                {% if category.length != "0 m" %}
+                    <span>/ {{ category.length }}</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% for runner in category.runners %}
             <tr {% if not runner.ok %} style="font-style: italic; color: darkgray;" {% endif %}>
                 <td>{{ runner.place }}</td>
                 <td>{{ runner.name }}</td>
@@ -105,36 +108,36 @@
                 <td>{{ runner.time }}</td>
                 <td>{{ runner.tx }} TX</td>
                 {% if not splits %}
-                <td>{{ runner.order|safe }}</td>
+                    <td>{{ runner.order|safe }}</td>
                 {% endif %}
             </tr>
             {% if splits %}
-            <tr>
-                <td colspan="6">
-                    <div class="splits">
-                        {% for split in runner.splits %}
-                        <table {% if split.control.endswith("+") %} style="color: orange;" {% endif %}>
-                            <tbody>
-                                <tr>
-                                    <td class="control_name">{{ split.control }}</td>
-                                    <td class="control_time">{{ split.time }}</td>
-                                </tr>
-                                <tr>
-                                    <td></td>
-                                    <td class="control_time">+{{ split.split }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        {% endfor %}
-                    </div>
-                </td>
-            </tr>
+                <tr>
+                    <td colspan="6">
+                        <div class="splits">
+                            {% for split in runner.splits %}
+                                <table {% if split.control.endswith("+") %} style="color: orange;" {% endif %}>
+                                    <tbody>
+                                    <tr>
+                                        <td class="control_name">{{ split.control }}</td>
+                                        <td class="control_time">{{ split.time }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td></td>
+                                        <td class="control_time">+{{ split.split }}</td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            {% endfor %}
+                        </div>
+                    </td>
+                </tr>
             {% endif %}
-            {% endfor %}
-        </tbody>
         {% endfor %}
-    </table>
-    <span id="footer">JJ ARDFEvent, &copy; Jakub Jiroutek</span>
+        </tbody>
+    {% endfor %}
+</table>
+<span id="footer">JJ ARDFEvent, &copy; Jakub Jiroutek</span>
 </body>
 
 </html>

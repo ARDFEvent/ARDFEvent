@@ -5,6 +5,7 @@ from sqlalchemy import Select
 from sqlalchemy.orm import Session
 
 import results
+import routes
 from exports import html_common
 from models import Category
 
@@ -79,6 +80,7 @@ def generate(db, splits=False):
         categories.append(
             {
                 "name": category.name,
+                "length": routes.get_cat_lenght_str(category.name),
                 "controls": ", ".join(map(lambda x: x.name, category.controls)),
                 "runners": runners,
             }
